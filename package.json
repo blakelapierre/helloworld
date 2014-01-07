@@ -1,0 +1,11 @@
+{
+    "name": "face_race",
+    "version": "0.0.1",
+    "description": "race your face",
+    "dependencies": {
+        "express": "latest",
+        "socket.io": "latest",
+        "underscore": "latest"
+    },
+    "author": "Blake La Pierre"
+}

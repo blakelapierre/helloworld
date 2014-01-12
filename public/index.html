@@ -9,10 +9,13 @@
 	<script type="text/javascript" src="/js/angular.1.2.0rc1.min.js"></script>
 	<script type="text/javascript" src="/js/underscore.1.4.4.js"></script>
 	<script type="text/javascript" src="/js/gl-matrix-min.js"></script>
+	<script type="text/javascript" src="/js/three.min.js"></script>
+	<script type="text/javascript" src="/js/stats.min.js"></script>
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="/js/gestures.js"></script>
 	<script type="text/javascript" src="/js/facerace/simulator.js"></script>
 	<script type="text/javascript" src="/js/facerace/client.js"></script>
+	<script type="text/javascript" src="/js/facerace/gameClient.js"></script>
 	
 	<link rel="stylesheet" href="/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="/css/facerace.css" />
@@ -22,19 +25,7 @@
 	<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
 	<div id="brake" class="brake" hm-tap="brake()"></div>
 	<div class="client" player-controller>
-		<div viewport ng-style="viewportStyle">
-			<div class="camera" ng-style="cameraStyle">
-				<div class="assembly" ng-style="assemblyStyle">
-					<div class="course">
-						<div class="player" style="background-image: url('{{player.face}}');" ng-style="player.style" ng-repeat="player in players">
-						</div>
-						<div class="items">
-							<div class="star" ng-style="star.style" ng-repeat="star in stars"><div class="star-image"></div></div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+		<div scene></div>
 		<div class="dashboard">
 			<span class="glyphicon glyphicon-arrow-down" ng-show="controls.down"></span>
 			<span class="glyphicon glyphicon-arrow-up" ng-show="controls.up"></span>

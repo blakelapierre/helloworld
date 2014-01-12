@@ -49,11 +49,13 @@ var faceraceSimulator = (function() {
                         up: false,
                         right: false,
                         down: false,
+                        space: false,
                         orientation: [0, 0, 0],
                         calibration: [0, 0, 0]
                     },
                     vehicle: {
                         speed: 6,
+                        boostSpeed: 10,
                         turnSpeed: Math.PI / 2
                     },
                     face: image,
@@ -109,18 +111,21 @@ var faceraceSimulator = (function() {
             vec3.set(player.directionVector, Math.sin(player.direction), Math.cos(player.direction), 0);
 
 
+            var vehicleSpeed = player.vehicle.speed;
+
+            if (player.controls.space) vehicleSpeed += player.vehicle.boostSpeed;
 
             if (player.controls.up) {
-                vec3.scale(acceleration, player.directionVector, player.vehicle.speed * dt);
+                vec3.scale(acceleration, player.directionVector, vehicleSpeed * dt);
                 vec3.add(acceleration, player.acceleration, acceleration);
             }
             if (player.controls.down) {
-                vec3.scale(acceleration, player.directionVector, player.vehicle.speed * dt);
+                vec3.scale(acceleration, player.directionVector, vehicleSpeed * dt);
                 vec3.sub(acceleration, player.acceleration, acceleration);
             }
 
             var accelerationMagnitude = vec3.length(acceleration);
-            if (accelerationMagnitude > player.vehicle.speed) accelerationMagnitude = player.vehicle.speed;
+            if (accelerationMagnitude > vehicleSpeed) accelerationMagnitude = vehicleSpeed;
 
             var previousDirection = vec3.create();
 

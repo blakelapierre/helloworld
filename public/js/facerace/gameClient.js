@@ -118,17 +118,25 @@ var faceraceClient = (function() {
 			var target = players[playerID] || scene;
 
 			if (typeof target.simulatorPlayer !== 'undefined') {
-				var direction = new THREE.Vector3(Math.sin(target.simulatorPlayer.direction), Math.cos(target.simulatorPlayer.direction), 0);
+				var d = target.simulatorPlayer.direction,
+					direction = new THREE.Vector3(Math.sin(d), Math.cos(d), 0);
+
 				direction.normalize();
 				direction.multiplyScalar(140);
 
 				camera.position.copy(target.position);
 				camera.position.sub(direction);
 				camera.position.z = 100;
+
+				var speed = new THREE.Vector3().fromArray(target.simulatorPlayer.velocity).length();
+				camera.fov = 45 + (speed / 20);
+				camera.updateProjectionMatrix();
 			}
 			else {
 				//graphics.camera.position.set(target.position.x, target.position.y, 1000);
 			}
+
+
 
 			camera.lookAt(target.position);
 			renderer.render(scene, camera);
@@ -148,7 +156,8 @@ var faceraceClient = (function() {
 				players[id] = player;
 			}
 			
-			player.rotateY(simulatorPlayer.direction);
+			player.rotation.y = -simulatorPlayer.direction;
+			
 			player.position.set(simulatorPlayer.position[0], simulatorPlayer.position[1], simulatorPlayer.position[2]);
 
 			player.simulatorPlayer = simulatorPlayer;

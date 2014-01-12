@@ -46,6 +46,7 @@ angular.module('facerace', ['angular-gestures'])
 			var controls = $scope.controls;
 
 			var keymap = {
+				32: function(b) { controls.space= b; $scope.controlsChanged(); },
 				37: function(b) { controls.left	= b; $scope.controlsChanged(); },
 				38: function(b) { controls.up	= b; $scope.controlsChanged(); },
 				39: function(b) { controls.right= b; $scope.controlsChanged(); },

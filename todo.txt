@@ -1,0 +1,8 @@
+x client cleanup
+client simulation
+client interpolation
+message optimization?
+items
+courses
+faces
+tilt controls

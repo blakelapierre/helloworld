@@ -11,7 +11,7 @@ var faceraceClient = (function() {
 	var createScene = function(element) {
 		var height = window.innerHeight,
 			width = window.innerWidth,
-			camera = new THREE.PerspectiveCamera(45, width / height, 1, 5000),
+			camera = new THREE.PerspectiveCamera(90, width / height, 1, 5000),
 			scene = new THREE.Scene(),
 			renderer = new THREE.WebGLRenderer({antialias: true}),
 			stats = new Stats();
@@ -49,7 +49,8 @@ var faceraceClient = (function() {
 	};
 
 	var startGame = function(url, controls, graphics) {
-		var camera = graphics.camera,
+		var simulator = faceraceSimulator(20),
+			camera = graphics.camera,
 			scene = graphics.scene,
 			renderer = graphics.renderer,
 			stats = graphics.stats,
@@ -85,26 +86,30 @@ var faceraceClient = (function() {
 		});
 
 		socket.on('world', function(data) {
+			processNewState(data);
+		});
+
+		var processNewState = function(state) {
 			var world = game.world,
 				players = game.world.players,
 				stars = game.world.stars;
 
-			_.extend(world, data.world);
+			_.extend(world, state.world);
 			
-			_.each(data.world.players, function(player, index) {
+			_.each(state.world.players, function(player, index) {
 				_.extend(players[index], player);
 			});
 
-			_.each(data.world.stars, function(star, index) {
+			_.each(state.world.stars, function(star, index) {
 				_.extend(stars[index], star);
 			});
 
-			var index = world.playerMap[data.playerID];
+			var index = world.playerMap[state.playerID];
 			if (index !== playerIndex) {
 				playerIndex = index;
 				player = players[playerIndex];			
 			}
-		});
+		};
 
 		var step = function(timestamp) {
 			var world = game.world,
@@ -113,23 +118,26 @@ var faceraceClient = (function() {
 
 			sendControls();
 
+			simulator.runNextStep();
+
 			_.each(simulatorPlayers, updatePlayer);
 
 			var target = players[playerID] || scene;
 
 			if (typeof target.simulatorPlayer !== 'undefined') {
 				var d = target.simulatorPlayer.direction,
-					direction = new THREE.Vector3(Math.sin(d), Math.cos(d), 0);
+					direction = new THREE.Vector3(Math.sin(d), Math.cos(d), 0),
+					speed = new THREE.Vector3().fromArray(target.simulatorPlayer.velocity).length();
 
 				direction.normalize();
-				direction.multiplyScalar(140);
+				direction.multiplyScalar(40 - (speed / 60));
 
 				camera.position.copy(target.position);
 				camera.position.sub(direction);
-				camera.position.z = 100;
+				camera.position.z = 40 - (speed / 60);
+				
+				camera.fov = 70 + (speed / 60);
 
-				var speed = new THREE.Vector3().fromArray(target.simulatorPlayer.velocity).length();
-				camera.fov = 45 + (speed / 20);
 				camera.updateProjectionMatrix();
 			}
 			else {
@@ -150,7 +158,7 @@ var faceraceClient = (function() {
 				player = players[id];
 			
 			if (!player) {
-				player = createPlane(simulatorPlayer.face, 10, 10);
+				player = createPlane(simulatorPlayer.face, 5, 5);
 				player.rotateX(Math.PI / 2);
 				scene.add(player);
 				players[id] = player;
@@ -159,6 +167,8 @@ var faceraceClient = (function() {
 			player.rotation.y = -simulatorPlayer.direction;
 			
 			player.position.set(simulatorPlayer.position[0], simulatorPlayer.position[1], simulatorPlayer.position[2]);
+
+			player.scale.set(simulatorPlayer.scale, simulatorPlayer.scale, simulatorPlayer.scale);
 
 			player.simulatorPlayer = simulatorPlayer;
 

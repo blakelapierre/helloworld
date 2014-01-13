@@ -39,7 +39,7 @@ var faceraceSimulator = (function() {
                 player = {
                     name: name,
                     orientation: [-90, 0, 0],
-                    position: [0, 0, 44],
+                    position: [0, 0, 22],
                     velocity: [0, 0, 0],
                     acceleration: [0, 0, 0],
                     direction: 0,
@@ -59,7 +59,7 @@ var faceraceSimulator = (function() {
                         turnSpeed: Math.PI / 2
                     },
                     face: image,
-                    scale: 0.25
+                    scale: 1
                 };
             }
 
@@ -89,8 +89,8 @@ var faceraceSimulator = (function() {
             vec3.scale(player.velocity, player.velocity, (1 - dt) * (1 - friction));
 
             // If we get too slow, we just stop
-            var linearVelocity = vec3.length(player.velocity);
-            if (linearVelocity < 0.5) vec3.set(player.velocity, 0, 0, 0);
+            var speed = vec3.length(player.velocity);
+            if (speed < 0.5) vec3.set(player.velocity, 0, 0, 0);
 
 
             var orientation = [0, 0, 0];
@@ -163,9 +163,21 @@ var faceraceSimulator = (function() {
             var now = new Date().getTime(),
                 steps = (now - world.start) / stepSize;
 
-            for (var i = world.step; i <= steps; i++) {
+            runSteps(steps);
+        };
+
+        var runSimulationToStep = function(step) {
+          	runSteps(step - world.step);  
+        };
+
+        var runSteps = function(steps) {
+			for (var i = world.step; i <= steps; i++) {
                 processStep();
             }
+        };
+
+        var runNextStep = function() {
+        	runSteps(1);
         };
 
         return {
@@ -173,7 +185,8 @@ var faceraceSimulator = (function() {
             addPlayer: addPlayer,
             removePlayer: removePlayer,
             startSimulation: startSimulation,
-            runSimulationToNow: runSimulationToNow
+            runSimulationToNow: runSimulationToNow,
+            runNextStep: runNextStep
         };
     };
 })();

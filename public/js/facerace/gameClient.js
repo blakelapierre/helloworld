@@ -62,25 +62,34 @@ var faceraceClient = (function() {
 			},
 			players = {},
 			player = null, 
-			playerID = null;
+			playerID = null,
+			playerIndex = null;
+
+		var getWorld = function() { return simulator.world; };
+
+		game.world.startTime -= 500;
 
 		emit('joinGame', {name: 'blake', image: '/images/faces/blake.png'});
 
 		socket.on('welcome', function(data) {
-			var world = data.world;
+			var sourceWorld = data.world,
+				world = getWorld();
 			
-			game.world.playerMap = world.playerMap;
-			_.each(world.players, function(p) {
-				game.world.players.push(p);
+			world.playerMap = sourceWorld.playerMap;
+			_.each(sourceWorld.players, function(p) {
+				world.players.push(p);
 			});
 
+			world.step = sourceWorld.step;
+			world.startTime = sourceWorld.startTime;
+
 			playerID = data.playerID;
-			playerIndex = world.playerMap[data.playerID];
-			player = world.players[playerIndex];
+			playerIndex = sourceWorld.playerMap[data.playerID];
+			player = sourceWorld.players[playerIndex];
 
 			player.controls = controls;
 
-			var course = createPlane(world.course.image, world.course.size[0], world.course.size[1]);
+			var course = createPlane(sourceWorld.course.image, sourceWorld.course.size[0], sourceWorld.course.size[1]);
 			course.position.set(50, 50, 0);
 			course.up.set(1, 0, 0);
 			scene.add(course);
@@ -89,21 +98,48 @@ var faceraceClient = (function() {
 		});
 
 		socket.on('world', function(data) {
-			//processNewState(data);
+			processNewState(data);
 		});
 
-		var processNewState = function(state) {
-			var world = game.world,
-				players = game.world.players,
-				stars = game.world.stars;
+		var pingStart = 0;
+		socket.on('ping', function() {
+			emit('pong', {time: new Date().getTime()});
+		});
 
-			_.extend(world, state.world);
-			
-			_.each(state.world.players, function(player, index) {
-				_.extend(players[index], player);
+		socket.on('pong', function(data) {
+			var now = new Date().getTime(),
+				latency = now - pingStart,
+				difference = now - data.time - latency;
+
+			setTimeout(ping, 1000);
+			console.log('latency', latency, difference);
+		});
+
+		var ping = function() {
+			pingStart = new Date().getTime();
+			emit('ping');
+		};
+
+		var processNewState = function(state) {
+			var sourceWorld = state.world;
+				world = getWorld(),
+				players = world.players,
+				stars = world.stars;
+
+			world.step = sourceWorld.step;
+			world.startTime = sourceWorld.startTime;
+
+			//_.extend(world, state.world);
+			//console.log('player step', player.step, 'world step', state.world.players[0].step);
+
+			_.each(sourceWorld.players, function(player) {
+				var id = player.id,
+					p = players[id];
+				if (p) _.extend(players[id], player);
+				else players[id] = player;
 			});
 
-			_.each(state.world.stars, function(star, index) {
+			_.each(sourceWorld.stars, function(star, index) {
 				_.extend(stars[index], star);
 			});
 
@@ -115,13 +151,16 @@ var faceraceClient = (function() {
 		};
 
 		var step = function(timestamp) {
-			var world = game.world,
+			var world = simulator.world,
 				simulatorPlayers = world.players,
 				stars = world.stars;
 
+			player.controls = controls;
 			sendControls();
 
-			simulator.runSimulationToNow();
+			//simulator.runSimulationToNow();
+			simulator.runWorldToNow();
+			world = simulator.world;
 
 			_.each(simulatorPlayers, updatePlayer);
 
@@ -137,13 +176,12 @@ var faceraceClient = (function() {
 
 				camera.position.copy(target.position);
 				camera.position.sub(direction);
-				camera.position.z = 40 - (speed / 60);
+				camera.position.z = 30 - (speed / 60);
 
 				camera.up.x = target.simulatorPlayer.lastTurn[0] * 2;
 				camera.up.y = target.simulatorPlayer.lastTurn[1] * 2;
 				camera.up.z = 1;
 				camera.up.normalize();
-				console.log(camera.up);
 				
 				camera.fov = 70 + (speed / 60);
 
@@ -162,6 +200,7 @@ var faceraceClient = (function() {
 			window.requestAnimationFrame(step);
 		};
 		
+		var logs = 0;
 		var updatePlayer = function(simulatorPlayer) {
 			var id = simulatorPlayer.id,
 				player = players[id];
@@ -172,10 +211,25 @@ var faceraceClient = (function() {
 				scene.add(player);
 				players[id] = player;
 			}
+
+			if (id === playerID) {
+				player.position.set(simulatorPlayer.position[0], simulatorPlayer.position[1], simulatorPlayer.position[2]);
+				player.rotation.y = -simulatorPlayer.direction;
+				//console.log(player.position);
+			}
+			else {
+				player.targetPosition = new THREE.Vector3().fromArray(simulatorPlayer.position);
+				
+				var oldPosition = player.position;
+				player.position = player.targetPosition;
+				player.position.lerp(oldPosition, 0.5);
+			}
 			
+			//if (logs++ < 100) console.log(simulatorPlayer.controls, simulatorPlayer.direction);
 			player.rotation.y = -simulatorPlayer.direction;
+
 			
-			player.position.set(simulatorPlayer.position[0], simulatorPlayer.position[1], simulatorPlayer.position[2]);
+			//console.log(player.position, player.targetPosition);
 
 			player.scale.set(simulatorPlayer.scale, simulatorPlayer.scale, simulatorPlayer.scale);
 

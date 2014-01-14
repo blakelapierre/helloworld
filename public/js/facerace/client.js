@@ -52,6 +52,7 @@ angular.module('facerace', ['angular-gestures'])
 	return {
 		link: function($scope, element, attribute) {
 			$scope.faceraceClient = faceraceClient('http://' + window.location.host, element, $scope.controls);
+			$scope.world = $scope.faceraceClient.world;
 		}
 	};
 })

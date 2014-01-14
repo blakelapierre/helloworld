@@ -7,7 +7,8 @@ var faceraceSimulator = (function() {
     return function(stepSize) {
         var dt = stepSize / 1000;
         var nextPlayerID = 0;
-        var players = [],
+        var simulator = {},
+        	players = [],
             world = {
                 step: 0,
                 start: new Date().getTime(),
@@ -18,8 +19,11 @@ var faceraceSimulator = (function() {
                     stars: []
                 },
                 playerMap: {},
-                players: players
-            };
+                players: players,
+                friction: 0.01
+            },
+            worldBuffer = [],
+			worldBufferSize = 100;
 
         for (var i = 0; i < 50; i++) {
             world.course.stars.push({
@@ -28,40 +32,40 @@ var faceraceSimulator = (function() {
             });
         }
 
-        var friction = 0.01;
-
         var addPlayer = function() {
             var player = arguments[0];
             if (typeof player !== 'object') {
                 var name = player || 'NO NAME!',
                     image = arguments[1] || '/images/faces/default.png';
 
-                player = {
-                    name: name,
-                    orientation: [-90, 0, 0],
-                    position: [0, 0, 22],
-                    velocity: [0, 0, 0],
-                    acceleration: [0, 0, 0],
-                    direction: 0,
-                    directionVector: [0, 1, 0],
-                    lastTurn: [0, 0, 0],
-                    controls: {
-                        left: false,
-                        up: false,
-                        right: false,
-                        down: false,
-                        space: false,
-                        orientation: [0, 0, 0],
-                        calibration: [0, 0, 0]
-                    },
-                    vehicle: {
-                        speed: 6,
-                        boostSpeed: 10,
-                        turnSpeed: Math.PI / 2
-                    },
-                    face: image,
-                    scale: 1
-                };
+				player = {
+					name: name,
+					orientation: [-90, 0, 0],
+					position: [0, 0, 11],
+					velocity: [0, 0, 0],
+					acceleration: [0, 0, 0],
+					direction: 0,
+					directionVector: [0, 1, 0],
+					lastTurn: [0, 0, 0],
+					controls: {
+						left: false,
+						up: false,
+						right: false,
+						down: false,
+						space: false,
+						orientation: [0, 0, 0],
+						calibration: [0, 0, 0]
+					},
+					vehicle: {
+						speed: 6,
+						boostSpeed: 10,
+						turnSpeed: Math.PI / 2
+					},
+					face: image,
+					scale: 2,
+					pingStart: 0,
+					latency: 0
+				};
             }
 
             player.id = nextPlayerID++;
@@ -83,74 +87,90 @@ var faceraceSimulator = (function() {
             world.step++;
         };
 
-        var processPlayerStep = function(player) {
-            var acceleration = vec3.create();
+        var processPlayerStep = (function() {
+        	var acceleration = vec3.create(),
+        		velocity = vec3.create(),
+        		orientation = vec3.create(),
+        		directionVector = vec3.create(),
+        		previousDirection = vec3.create(),
+        		vehicleSpeed = 0,
+        		speed = 0,
+        		direction = 0,
+        		turnSpeed = 0;
 
-            // Apply friction
-            vec3.scale(player.velocity, player.velocity, (1 - dt) * (1 - friction));
+        	return function(oldWorld, newWorld, playerIndex) {
+	            var player = oldWorld.players[playerIndex], // need to use a hashtable
+	            	newPlayer = newWorld.players[playerIndex], // need to use a hashtable
+	            	controls = newPlayer.controls;
 
-            // If we get too slow, we just stop
-            var speed = vec3.length(player.velocity);
-            if (speed < 0.5) vec3.set(player.velocity, 0, 0, 0);
+	            // Apply friction
+	            vec3.scale(velocity, player.velocity, (1 - dt) * (1 - world.friction));
 
-
-            var orientation = [0, 0, 0];
-            vec3.sub(orientation, player.controls.orientation, player.controls.calibration);
-
-            var angle = orientation[1];
-            if (angle > 180) angle -= 360;
-            player.direction += 0.025 * player.vehicle.turnSpeed * angle * dt;
-
-            // Handle inputs
-            if (player.controls.left) {
-                player.direction = (player.direction - (player.vehicle.turnSpeed * dt));
-            }
-            if (player.controls.right) {
-                player.direction = (player.direction + (player.vehicle.turnSpeed * dt));
-            }
-
-            vec3.set(player.directionVector, Math.sin(player.direction), Math.cos(player.direction), 0);
+	            // If we get too slow, we just stop
+	            speed = vec3.length(velocity);
+	            if (speed < 0.5) vec3.set(velocity, 0, 0, 0);
 
 
-            var vehicleSpeed = player.vehicle.speed;
+	            
+	            vec3.sub(orientation, controls.orientation, controls.calibration);
 
-            if (player.controls.space) vehicleSpeed += player.vehicle.boostSpeed;
+	            turnSpeed = player.vehicle.turnSpeed;
 
-            if (player.controls.up) {
-                vec3.scale(acceleration, player.directionVector, vehicleSpeed * dt);
-                vec3.add(acceleration, player.acceleration, acceleration);
-            }
-            if (player.controls.down) {
-                vec3.scale(acceleration, player.directionVector, vehicleSpeed * dt);
-                vec3.sub(acceleration, player.acceleration, acceleration);
-            }
+	            var angle = orientation[1];
+	            if (angle > 180) angle -= 360;
+	            direction += 0.025 * turnSpeed * angle * dt;
 
-            var accelerationMagnitude = vec3.length(acceleration);
-            if (accelerationMagnitude > vehicleSpeed) accelerationMagnitude = vehicleSpeed;
+	            // Handle inputs
+	            if (controls.left) {
+	                direction = (direction - (turnSpeed * dt));
+	            }
+	            if (controls.right) {
+	                direction = (direction + (turnSpeed * dt));
+	            }
 
-            var previousDirection = vec3.create();
+	            vec3.set(directionVector, Math.sin(direction), Math.cos(direction), 0);
+	            player.directionVector = directionVector;
 
-            var velocity = player.velocity,
-                speed = vec3.length(velocity);
 
-            if (speed > 0) vec3.normalize(previousDirection, velocity);
-            else previousDirection = player.directionVector;
+	            var vehicleAcceleration = player.vehicle.speed,
+	            	boostAcceleration = player.vehicle.boostSpeed;
 
-            vec3.sub(player.lastTurn, player.directionVector, previousDirection);
+	            if (controls.space) vehicleAcceleration += boostAcceleration;
 
-            vec3.scale(velocity, player.directionVector, speed);
-            vec3.scale(acceleration, previousDirection, accelerationMagnitude);
+	            if (controls.up) {
+	                vec3.scale(acceleration, directionVector, vehicleAcceleration * dt);
+	            }
+	            if (player.controls.down) {
+	                vec3.scale(acceleration, player.directionVector, -vehicleAcceleration * dt);
+	            }
 
-            vec3.add(velocity, velocity, acceleration);
+	            var accelerationMagnitude = vec3.length(acceleration);
+	            if (accelerationMagnitude > vehicleSpeed) accelerationMagnitude = vehicleAcceleration;
 
-            vec3.set(player.acceleration, acceleration[0], acceleration[1], acceleration[2]);
+	            
 
-            var stepVelocity = vec3.create();
-            vec3.scale(stepVelocity, player.velocity, dt);
-            vec3.add(player.position, player.position, stepVelocity);
+	            velocity = player.velocity,
+	            speed = vec3.length(velocity);
 
-            player.orientation[1] = player.direction / Math.PI * 180;
-        };
+	            if (speed > 0) vec3.normalize(previousDirection, velocity);
+	            else previousDirection = player.directionVector;
+
+	            vec3.sub(player.lastTurn, player.directionVector, previousDirection);
+
+	            vec3.scale(velocity, player.directionVector, speed);
+	            vec3.scale(acceleration, previousDirection, accelerationMagnitude);
+
+	            vec3.add(velocity, velocity, acceleration);
+
+	            vec3.set(player.acceleration, acceleration[0], acceleration[1], acceleration[2]);
+
+	            var stepVelocity = vec3.create();
+	            vec3.scale(stepVelocity, player.velocity, dt);
+	            vec3.add(player.position, player.position, stepVelocity);
+
+	            player.orientation[1] = player.direction / Math.PI * 180;
+	        };
+	    )();
 
         var startSimulation = function() {
             world.step = 0;
@@ -162,12 +182,50 @@ var faceraceSimulator = (function() {
             });
         };
 
+        var stepWorld = function(oldWorld) {
+        	world = getNextWorld(oldWorld);
+
+        	_.each(world.players, processPlayerStep);
+
+        	return world;
+        };
+
+        var runWorldToNow = function() {
+        	var now = now || new Date().getTime(),
+        		currentStep = currentStep || Math.floor((now - world.start) / stepSize),
+        		steps = currentStep - world.step;
+
+        	for (var i = 0; i < steps; i++) world = stepWorld(world);
+
+			if (world.step % 100 == 0) console.dir(worldBuffer);
+
+        	simulator.world = world;
+        	return world;
+        };
+
         var runSimulationToNow = function() {
             var now = new Date().getTime(),
-                currentStep = (now - world.start) / stepSize,
-                steps = currentStep - world.step;
+                currentStep = Math.floor((now - world.start) / stepSize);
 
-            runSteps(steps);
+            _.each(world.players, function(player) {
+            	runPlayerToNow(player, now, currentStep);
+            });
+
+            world.step = currentStep;
+
+
+        };
+
+        var runPlayerToNow = function(player, now, currentStep) {
+        	var now = now || new Date().getTime(),
+        		currentStep = currentStep || Math.floor((now - world.start) / stepSize),
+        		steps = currentStep - player.step;
+
+        	var oldPosition = vec3.clone(player.position);
+        	for (var i = 0; i < steps; i++) {
+        		processPlayerStep(player);
+        	}
+        	//console.log(steps, oldPosition, player.position);
         };
 
         var runSimulationToStep = function(step) {
@@ -184,14 +242,45 @@ var faceraceSimulator = (function() {
         	runSteps(1);
         };
 
-        return {
+        var getNextWorld = function(oldWorld) {
+			var step = oldWorld.step + 1,
+				index = step % 100,
+				world = worldBuffer[index];
+
+				
+
+			if (typeof world === 'undefined') {
+				var cloneWorld = function(w) {
+					if (w == null) return null;
+					if (_.isObject(w)) {
+						var c = {};
+						for (var key in w) {
+							c[key] = cloneWorld(w[key]);
+						}
+						return c;
+					}
+					if (_.isArray(w)) return _.map(w, cloneWorld);
+					return w;
+				};
+				world = cloneWorld(oldWorld);
+				console.log(oldWorld, world);
+				worldBuffer[index] = world;
+			}
+
+			world.step = step;
+
+			return world;
+		};
+
+        return _.extend(simulator, {
             world: world,
             addPlayer: addPlayer,
             removePlayer: removePlayer,
             startSimulation: startSimulation,
+            runWorldToNow: runWorldToNow,
             runSimulationToNow: runSimulationToNow,
             runNextStep: runNextStep
-        };
+        });
     };
 })();
 

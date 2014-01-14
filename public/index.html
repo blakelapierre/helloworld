@@ -28,6 +28,20 @@
 			<canvas class="beta" width="300" height="50"></canvas>
 			<canvas class="gamma" width="300" height="50"></canvas>
 		</div>
+		<div class="scoreboard">
+			<table>
+				<thead>
+					<tr>
+						<td>Name</td>
+						<td>Ping</td>
+					</tr>
+				</thead>
+				<tr class="player-score" ng-repeat="player in world.players">
+					<td>{{player.name}}</td>
+					<td>{{player.latency}}</td>
+				</tr>
+			</table>
+		</div>
 	</div>
 	<div id="accelerator" class="accelerator" hm-hold="" hm-tap="accelerate()">{{test}}</div>
 	<div id="calibrate" hm-tap="calibrate()">Calibrate</div>

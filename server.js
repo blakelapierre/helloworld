@@ -24,7 +24,7 @@ io.sockets.on('connection', function(socket) {
 
     var player;
     socket.on('joinGame', function(data) {
-        socket.player = simulator.addPlayer(data.name, data.image);
+        socket.player = player = simulator.addPlayer(data.name, data.image);
         simulator.runSimulationToNow();
         sendWorld('welcome');
     });
@@ -39,6 +39,15 @@ io.sockets.on('connection', function(socket) {
         if (socket.player) simulator.removePlayer(socket.player);
         
         delete io.sockets.socket[socket.id];
+    });
+
+    socket.on('ping', function() {
+    	socket.emit('pong', {time: new Date().getTime()});
+    });
+
+    socket.on('pong', function() {
+    	var now = new Date().getTime();
+    	player.latency = now - player.pingStart;
     });
 
     var sendWorld = function(name) {
@@ -60,8 +69,13 @@ setInterval(function() {
     for (var i = 0; i < clients.length; i++) clients[i].sendWorld();
 
     if (world.step % 100 == 0) {
-        var time = new Date().getTime();
-        //console.log(world.step, (time - start) / 1000);
+        var now = new Date().getTime();
+
+        _.each(clients, function(client) {
+        	if (client.player) client.player.pingStart = now;
+        });
+
+        io.sockets.emit('ping');
     }
 }, 20);
 

@@ -24,6 +24,17 @@
 	margin-top: 5px;
 }
 
+.scoreboard {
+	position: absolute;
+	top: 2%;
+	left: 2%;
+	width: 96%;
+	height: 96%;
+
+	border: solid 1px #a99;
+	background-color: #eee;
+}
+
 .client {
 	position: absolute;
 	width: 100%;

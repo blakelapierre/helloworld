@@ -13,6 +13,7 @@
 	<script type="text/javascript" src="/js/stats.min.js"></script>
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="/js/gestures.js"></script>
+	<script type="text/javascript" src="/js/smoothie.1.19.js"></script>
 	<script type="text/javascript" src="/js/facerace/simulator.js"></script>
 	<script type="text/javascript" src="/js/facerace/client.js"></script>
 	<script type="text/javascript" src="/js/facerace/gameClient.js"></script>
@@ -21,6 +22,13 @@
 	<link rel="stylesheet" href="/css/facerace.css" />
 </head>
 <body ng-controller="ClientCtrl">
+	<div class="info" ng-show="infoVisible">
+		<div orientation-metrics class="orientation">
+			<canvas class="alpha" width="300" height="50"></canvas>
+			<canvas class="beta" width="300" height="50"></canvas>
+			<canvas class="gamma" width="300" height="50"></canvas>
+		</div>
+	</div>
 	<div id="accelerator" class="accelerator" hm-hold="" hm-tap="accelerate()">{{test}}</div>
 	<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
 	<div id="brake" class="brake" hm-tap="brake()"></div>

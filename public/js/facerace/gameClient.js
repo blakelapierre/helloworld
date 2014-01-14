@@ -58,9 +58,7 @@ var faceraceClient = (function() {
 			emit = function(name, data) { socket.emit(name, data); },
 			game = {
 				socket: socket,
-				world: {
-					players: []
-				}
+				world: simulator.world
 			},
 			players = {},
 			player = null, 
@@ -71,11 +69,16 @@ var faceraceClient = (function() {
 		socket.on('welcome', function(data) {
 			var world = data.world;
 			
-			game.world = world;
+			game.world.playerMap = world.playerMap;
+			_.each(world.players, function(p) {
+				game.world.players.push(p);
+			});
 
 			playerID = data.playerID;
 			playerIndex = world.playerMap[data.playerID];
 			player = world.players[playerIndex];
+
+			player.controls = controls;
 
 			var course = createPlane(world.course.image, world.course.size[0], world.course.size[1]);
 			course.position.set(50, 50, 0);
@@ -86,7 +89,7 @@ var faceraceClient = (function() {
 		});
 
 		socket.on('world', function(data) {
-			processNewState(data);
+			//processNewState(data);
 		});
 
 		var processNewState = function(state) {
@@ -118,7 +121,7 @@ var faceraceClient = (function() {
 
 			sendControls();
 
-			simulator.runNextStep();
+			simulator.runSimulationToNow();
 
 			_.each(simulatorPlayers, updatePlayer);
 
@@ -135,6 +138,12 @@ var faceraceClient = (function() {
 				camera.position.copy(target.position);
 				camera.position.sub(direction);
 				camera.position.z = 40 - (speed / 60);
+
+				camera.up.x = target.simulatorPlayer.lastTurn[0] * 2;
+				camera.up.y = target.simulatorPlayer.lastTurn[1] * 2;
+				camera.up.z = 1;
+				camera.up.normalize();
+				console.log(camera.up);
 				
 				camera.fov = 70 + (speed / 60);
 

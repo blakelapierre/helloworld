@@ -1,3 +1,29 @@
+.info {
+	position: absolute;
+	width: 90%;
+	height: 90%;
+	top: 5%;
+	left: 5%;
+	z-index: 9999;
+
+	border: solid 2px #333;
+	background-color: #aac;
+	opacity: 0.5;
+}
+
+.orientation {
+	position: absolute;
+	top: 0;
+	right: 0;
+	opacity: 0.5;
+	z-index: 9999;
+}
+
+.orientation canvas {
+	display: block;
+	margin-top: 5px;
+}
+
 .client {
 	position: absolute;
 	width: 100%;

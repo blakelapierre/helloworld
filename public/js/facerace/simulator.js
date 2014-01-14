@@ -44,6 +44,7 @@ var faceraceSimulator = (function() {
                     acceleration: [0, 0, 0],
                     direction: 0,
                     directionVector: [0, 1, 0],
+                    lastTurn: [0, 0, 0],
                     controls: {
                         left: false,
                         up: false,
@@ -96,7 +97,7 @@ var faceraceSimulator = (function() {
             var orientation = [0, 0, 0];
             vec3.sub(orientation, player.controls.orientation, player.controls.calibration);
 
-            var angle = orientation[2];
+            var angle = orientation[1];
             if (angle > 180) angle -= 360;
             player.direction += 0.025 * player.vehicle.turnSpeed * angle * dt;
 
@@ -135,6 +136,8 @@ var faceraceSimulator = (function() {
             if (speed > 0) vec3.normalize(previousDirection, velocity);
             else previousDirection = player.directionVector;
 
+            vec3.sub(player.lastTurn, player.directionVector, previousDirection);
+
             vec3.scale(velocity, player.directionVector, speed);
             vec3.scale(acceleration, previousDirection, accelerationMagnitude);
 
@@ -161,7 +164,8 @@ var faceraceSimulator = (function() {
 
         var runSimulationToNow = function() {
             var now = new Date().getTime(),
-                steps = (now - world.start) / stepSize;
+                currentStep = (now - world.start) / stepSize,
+                steps = currentStep - world.step;
 
             runSteps(steps);
         };
@@ -171,7 +175,7 @@ var faceraceSimulator = (function() {
         };
 
         var runSteps = function(steps) {
-			for (var i = world.step; i <= steps; i++) {
+			for (var i = 0; i <= steps; i++) {
                 processStep();
             }
         };

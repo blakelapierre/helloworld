@@ -87,19 +87,14 @@ var faceraceSimulator = (function() {
 
 		            if (controls.up) vec3.scale(acceleration, directionVector, vehicleAcceleration);
 		            if (controls.down) vec3.scale(acceleration, directionVector, -vehicleAcceleration);
-
-//console.log('a', acceleration);
 					
 					speed = vec3.length(velocity);		            
 		            // NEED TO NOT JUST CHANGE VELOCITY ALONG NEW DIRECTION
 
 		            vec3.scale(velocity, directionVector, speed);
-//		            vec3.scale(acceleration, previousDirection, accelerationMagnitude);
 					
 					vec3.scale(stepAcceleration, acceleration, dt);
 		            vec3.add(velocity, velocity, stepAcceleration);
-
-		            //console.log('v', velocity);
 
 		            // Apply friction
 		            vec3.scale(velocity, velocity, (1 - dt) * (1 - world.friction));
@@ -132,8 +127,6 @@ var faceraceSimulator = (function() {
 		            player.orientation[1] = player.direction / Math.PI * 180;
 
 		            if (player.step == controls.step) updateLastControls(player);
-
-		            //console.log('p', player.position);
 	        	}
 	        };
 	    })();

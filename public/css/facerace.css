@@ -83,3 +83,57 @@
 	background-color: #009;
 	height: 40px;
 }
+
+.camera {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: #fff;
+	border: solid 1px #999;
+	z-index: 10000;
+}
+
+.camera .inner {
+	width: 320px;
+	margin: auto;
+	opacity: 1;
+}
+
+.camera .step-1 .btn-group {
+	margin: auto;
+}
+
+.camera .live-video {
+	width: 320px;
+	height: 240px;
+	margin: 0 auto;
+	padding: 0;
+}
+
+.camera video {
+	display: block;
+	opacity: 1.0;
+	border: solid 1px #333;
+	margin: 0;
+	width: 320px;
+	height: 240px;
+	background-color: #000;
+}
+
+.camera .step-2 .crop-space-photo {
+	display: block;
+	margin: 0 auto;
+}
+
+.camera .glyphicon-ok {
+	color: #0e0;
+}
+
+.camera .step-3 .final-photo {
+	display: block;
+	margin: 0 auto;
+	width: 128px;
+	height: 160px;
+}

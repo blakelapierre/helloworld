@@ -1,4 +1,5 @@
 var express = require('express'),
+	fs = require('fs'),
     app = express(),
 	port = 3006;
 
@@ -9,7 +10,7 @@ app.get('/', function(req, res) {});
 var io = require('socket.io').listen(app.listen(port));
 io.set('log level', 0);
 
-var simulator = require('./public/js/facerace/simulator.js').simulator(20),
+var simulator = require('./public/js/facerace/simulator2.js').simulator(20),
     world = simulator.world;
 
 
@@ -25,12 +26,22 @@ io.sockets.on('connection', function(socket) {
     var player;
     socket.on('joinGame', function(data) {
         socket.player = player = simulator.addPlayer(data.name, data.image);
-        simulator.runSimulationToNow();
+        simulator.runWorldToNow();
         sendWorld('welcome');
     });
 
     socket.on('controls', function(data) {
-        _.extend(socket.player.controls, data.controls);
+    	simulator.setPlayerControls(socket.player, data.controls);
+    });
+
+    socket.on('setFace', function(data) {
+        var base64Data = data.image.replace(/^data:image\/png;base64,/,""),
+        	fileName = __dirname + '/public/images/faces/' + player.name + '.png';
+
+        console.log('Writing new face', fileName);
+        fs.writeFile(fileName, base64Data, 'base64', function(err) {
+        	if (err) console.log(err);
+        });
     });
 
     socket.on('disconnect', function() {
@@ -64,7 +75,7 @@ io.sockets.on('connection', function(socket) {
 var start = null;
 setInterval(function() {
     if (start == null) start = new Date().getTime();
-    simulator.runSimulationToNow();
+    simulator.runWorldToNow();
 
     for (var i = 0; i < clients.length; i++) clients[i].sendWorld();
 

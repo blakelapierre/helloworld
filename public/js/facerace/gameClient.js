@@ -61,6 +61,7 @@ var faceraceClient = (function() {
 				world: simulator.world
 			},
 			players = {},
+			playerObjects = {},
 			player = null, 
 			playerID = null,
 			playerIndex = null;
@@ -126,16 +127,16 @@ var faceraceClient = (function() {
 				players = world.players,
 				stars = world.stars;
 
-			world.step = sourceWorld.step;
 			world.startTime = sourceWorld.startTime;
-
-			//_.extend(world, state.world);
-			//console.log('player step', player.step, 'world step', state.world.players[0].step);
 
 			_.each(sourceWorld.players, function(player) {
 				var id = player.id,
 					p = players[id];
-				if (p) _.extend(players[id], player);
+
+				if (p) {
+					delete player.lastControlsUpdate; // ugly
+					_.extend(p, player, {step: p.step });
+				}
 				else players[id] = player;
 			});
 
@@ -155,16 +156,24 @@ var faceraceClient = (function() {
 				simulatorPlayers = world.players,
 				stars = world.stars;
 
-			player.controls = controls;
+			var index = world.playerMap[playerID];
+			
+			player = world.players[playerIndex];		
+			
+			simulator.setPlayerControls(player, controls);
 			sendControls();
 
-			//simulator.runSimulationToNow();
 			simulator.runWorldToNow();
-			world = simulator.world;
+
+			var index = world.playerMap[playerID];
+			if (index !== playerIndex) {
+				playerIndex = index;
+				player = world.players[playerIndex];			
+			}
 
 			_.each(simulatorPlayers, updatePlayer);
 
-			var target = players[playerID] || scene;
+			var target = playerObjects[playerID] || scene;
 
 			if (typeof target.simulatorPlayer !== 'undefined') {
 				var d = target.simulatorPlayer.direction,
@@ -172,18 +181,38 @@ var faceraceClient = (function() {
 					speed = new THREE.Vector3().fromArray(target.simulatorPlayer.velocity).length();
 
 				direction.normalize();
-				direction.multiplyScalar(40 - (speed / 60));
+				direction.multiplyScalar(20 + (speed / 30));
 
 				camera.position.copy(target.position);
 				camera.position.sub(direction);
-				camera.position.z = 30 - (speed / 60);
+				camera.position.z = 20 + (speed / 60);
+//console.log('last turn', target.simulatorPlayer.lastTurn);
+				//camera.up.lerp(new THREE.Vector3().fromArray([target.simulatorPlayer.lastTurn[0] * 10, target.simulatorPlayer.lastTurn[1] * 10, 1]), 0.9);
+				//console.log('cbefore', camera.up);
+				camera.lookAt(target.position);
+				//camera.up.x = Math.sin(controls.turn * Math.PI / 180);
+				//camera.up.y = Math.cos(controls.turn * Math.PI / 180);
+				//camera.up.x = 0.5;
+				//camera.up.y = 0.5;
+				//camera.up.z = 1;
+				//camera.up.normalize();
+				//camera.up.set(0, 0, 1);
 
-				camera.up.x = target.simulatorPlayer.lastTurn[0] * 2;
-				camera.up.y = target.simulatorPlayer.lastTurn[1] * 2;
-				camera.up.z = 1;
-				camera.up.normalize();
+				var lastZRotation = camera.lastZRotation || 0,
+					diff = lastZRotation - controls.turn;
 				
-				camera.fov = 70 + (speed / 60);
+				var turn = -clamp(controls.turn, -1, 1),
+					angle = turn / 90 * Math.PI;
+
+				camera.quaternion.multiply(new THREE.Quaternion(0, 0, Math.sin(angle), Math.cos(angle)));
+				//camera.quaternion.slerp(new THREE.Quaternion(0, 1, 0, (controls.turn / 90 * Math.PI)), 0.5);
+				//camera.quaternion.multiplyQuaternions(new THREE.Quaternion(0, 0, 1, (controls.turn / 180 * Math.PI) / 2), camera.quaternion);
+				//camera.quaternion.set(0, 1, 1, controls.turn / 180 * Math.PI);
+
+
+				//console.log('camera', camera.up);
+				
+				camera.fov = 80 + (speed / 60);
 
 				camera.updateProjectionMatrix();
 			}
@@ -191,9 +220,7 @@ var faceraceClient = (function() {
 				//graphics.camera.position.set(target.position.x, target.position.y, 1000);
 			}
 
-
-
-			camera.lookAt(target.position);
+			
 			renderer.render(scene, camera);
 
 			stats.update();
@@ -203,39 +230,39 @@ var faceraceClient = (function() {
 		var logs = 0;
 		var updatePlayer = function(simulatorPlayer) {
 			var id = simulatorPlayer.id,
-				player = players[id];
+				pObject = playerObjects[id];
 			
-			if (!player) {
-				player = createPlane(simulatorPlayer.face, 5, 5);
-				player.rotateX(Math.PI / 2);
-				scene.add(player);
-				players[id] = player;
+			if (!pObject) {
+				pObject = createPlane(simulatorPlayer.face, 5, 5);
+				pObject.rotateX(Math.PI / 2);
+				scene.add(pObject);
+				playerObjects[id] = pObject;
 			}
 
 			if (id === playerID) {
-				player.position.set(simulatorPlayer.position[0], simulatorPlayer.position[1], simulatorPlayer.position[2]);
-				player.rotation.y = -simulatorPlayer.direction;
-				//console.log(player.position);
+				pObject.position.set(simulatorPlayer.position[0], simulatorPlayer.position[1], simulatorPlayer.position[2]);
+			//	pObject.rotation.y = -simulatorPlayer.direction;
+				//console.log(pObject.position);
 			}
 			else {
-				player.targetPosition = new THREE.Vector3().fromArray(simulatorPlayer.position);
+				pObject.targetPosition = new THREE.Vector3().fromArray(simulatorPlayer.position);
 				
-				var oldPosition = player.position;
-				player.position = player.targetPosition;
-				player.position.lerp(oldPosition, 0.5);
+				var oldPosition = pObject.position;
+				pObject.position = pObject.targetPosition;
+				pObject.position.lerp(oldPosition, 0.5);
 			}
 			
-			//if (logs++ < 100) console.log(simulatorPlayer.controls, simulatorPlayer.direction);
-			player.rotation.y = -simulatorPlayer.direction;
+			
+			pObject.rotation.y = -simulatorPlayer.direction;
 
 			
-			//console.log(player.position, player.targetPosition);
+			//console.log(pObject.position, pObject.targetPosition);
 
-			player.scale.set(simulatorPlayer.scale, simulatorPlayer.scale, simulatorPlayer.scale);
+			pObject.scale.set(simulatorPlayer.scale, simulatorPlayer.scale, simulatorPlayer.scale);
 
-			player.simulatorPlayer = simulatorPlayer;
+			pObject.simulatorPlayer = simulatorPlayer;
 
-			return player;
+			return pObject;
 		};
 
 		var createPlane = function(imageUrl, width, height) {
@@ -244,6 +271,7 @@ var faceraceClient = (function() {
 					ambient: 0xffffff, map: map, side: THREE.DoubleSide
 				});
 				
+			map.anisotropy = renderer.getMaxAnisotropy();
 			return new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 		};
 
@@ -252,11 +280,22 @@ var faceraceClient = (function() {
 		};
 		game.controlsUpdated = sendControls;
 
+		var setFace = function(data) {
+			if (data) {
+				emit('setFace', {image: data});
+			}
+		};
+		game.setFace = setFace;
+
 		return game;
 	};
 
     return create;
 })();
+
+var clamp = function(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+};
 
 
 var exports = exports || {};

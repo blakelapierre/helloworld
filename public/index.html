@@ -14,7 +14,7 @@
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="/js/gestures.js"></script>
 	<script type="text/javascript" src="/js/smoothie.1.19.js"></script>
-	<script type="text/javascript" src="/js/facerace/simulator.js"></script>
+	<script type="text/javascript" src="/js/facerace/simulator2.js"></script>
 	<script type="text/javascript" src="/js/facerace/client.js"></script>
 	<script type="text/javascript" src="/js/facerace/gameClient.js"></script>
 	
@@ -36,16 +36,17 @@
 						<td>Ping</td>
 					</tr>
 				</thead>
-				<tr class="player-score" ng-repeat="player in world.players">
+				<tr class="player-score" ng-repeat="player in faceraceClient.world.players">
 					<td>{{player.name}}</td>
 					<td>{{player.latency}}</td>
 				</tr>
 			</table>
 		</div>
 	</div>
-	<div id="accelerator" class="accelerator" hm-hold="" hm-tap="accelerate()">{{test}}</div>
+	<div id="accelerator" class="accelerator" ng-click="accelerate()">{{test}}</div>
 	<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
-	<div id="brake" class="brake" hm-tap="brake()"></div>
+	<div id="brake" class="brake" ng-click="brake()"></div>
+	<camera show-camera="showCamera" face-data="faceData"></camera>
 	<div class="client" player-controller>
 		<div scene></div>
 		<div class="dashboard">

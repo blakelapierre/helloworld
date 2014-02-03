@@ -1,5 +1,6 @@
 x client cleanup
 x client simulation
+face picture
 client interpolation
 message optimization?
 items

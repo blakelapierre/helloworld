@@ -186,17 +186,8 @@ var faceraceClient = (function() {
 				camera.position.copy(target.position);
 				camera.position.sub(direction);
 				camera.position.z = 20 + (speed / 60);
-//console.log('last turn', target.simulatorPlayer.lastTurn);
-				//camera.up.lerp(new THREE.Vector3().fromArray([target.simulatorPlayer.lastTurn[0] * 10, target.simulatorPlayer.lastTurn[1] * 10, 1]), 0.9);
-				//console.log('cbefore', camera.up);
+
 				camera.lookAt(target.position);
-				//camera.up.x = Math.sin(controls.turn * Math.PI / 180);
-				//camera.up.y = Math.cos(controls.turn * Math.PI / 180);
-				//camera.up.x = 0.5;
-				//camera.up.y = 0.5;
-				//camera.up.z = 1;
-				//camera.up.normalize();
-				//camera.up.set(0, 0, 1);
 
 				var lastZRotation = camera.lastZRotation || 0,
 					diff = lastZRotation - controls.turn;
@@ -205,12 +196,6 @@ var faceraceClient = (function() {
 					angle = turn / 90 * Math.PI;
 
 				camera.quaternion.multiply(new THREE.Quaternion(0, 0, Math.sin(angle), Math.cos(angle)));
-				//camera.quaternion.slerp(new THREE.Quaternion(0, 1, 0, (controls.turn / 90 * Math.PI)), 0.5);
-				//camera.quaternion.multiplyQuaternions(new THREE.Quaternion(0, 0, 1, (controls.turn / 180 * Math.PI) / 2), camera.quaternion);
-				//camera.quaternion.set(0, 1, 1, controls.turn / 180 * Math.PI);
-
-
-				//console.log('camera', camera.up);
 				
 				camera.fov = 80 + (speed / 60);
 
@@ -241,8 +226,6 @@ var faceraceClient = (function() {
 
 			if (id === playerID) {
 				pObject.position.set(simulatorPlayer.position[0], simulatorPlayer.position[1], simulatorPlayer.position[2]);
-			//	pObject.rotation.y = -simulatorPlayer.direction;
-				//console.log(pObject.position);
 			}
 			else {
 				pObject.targetPosition = new THREE.Vector3().fromArray(simulatorPlayer.position);
@@ -251,12 +234,8 @@ var faceraceClient = (function() {
 				pObject.position = pObject.targetPosition;
 				pObject.position.lerp(oldPosition, 0.5);
 			}
-			
-			
+						
 			pObject.rotation.y = -simulatorPlayer.direction;
-
-			
-			//console.log(pObject.position, pObject.targetPosition);
 
 			pObject.scale.set(simulatorPlayer.scale, simulatorPlayer.scale, simulatorPlayer.scale);
 

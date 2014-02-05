@@ -186,24 +186,26 @@ var faceraceClient = (function() {
 					direction = new THREE.Vector3(Math.sin(d), Math.cos(d), 0),
 					speed = new THREE.Vector3().fromArray(target.simulatorPlayer.velocity).length();
 
+				
+
+				
+				var moveBack = parseInt(config.camera.trailDistance) + (speed / 5);
 				direction.normalize();
-				direction.multiplyScalar(config.camera.trailDistance + (speed / 5));
+				direction.multiplyScalar(moveBack);
+				console.log(config.camera.trailDistance, moveBack, speed);
 
 				camera.position.copy(target.position);
 				camera.position.sub(direction);
-				camera.position.z = config.camera.heightFromGround + (speed / 10);
+				camera.position.z = parseInt(config.camera.heightFromGround) + (speed / 10);
 
 				camera.lookAt(target.position);
 
-				var lastZRotation = camera.lastZRotation || 0,
-					diff = lastZRotation - controls.turn;
-				
 				var turn = -clamp(controls.turn, -1, 1),
 					angle = turn / 90 * Math.PI;
 
-				camera.quaternion.multiply(new THREE.Quaternion(0, 0, Math.sin(angle), Math.cos(angle)));
+				camera.quaternion.multiply(new THREE.Quaternion(0, 0, Math.sin(angle), Math.cos(angle)).normalize());
 				
-				camera.fov = config.camera.fov + (speed / 60);
+				camera.fov = parseInt(config.camera.fov) + (speed / 60);
 
 				camera.updateProjectionMatrix();
 			}

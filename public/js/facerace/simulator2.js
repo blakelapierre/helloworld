@@ -123,6 +123,7 @@ var faceraceSimulator = (function() {
 		            vec3.copy(player.velocity, velocity);
 
 		            player.direction = direction;
+		            player.speed = speed;
 
 		            player.orientation[1] = player.direction / Math.PI * 180;
 

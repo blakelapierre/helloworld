@@ -1,4 +1,4 @@
-angular.module('facerace', ['angular-gestures'])
+angular.module('facerace', ['angular-gestures', 'faceraceDebug'])
 .controller('ClientCtrl', ['$scope', function($scope) {
 	var controls = {turn: 0},
 		controlsMetrics = {
@@ -71,6 +71,10 @@ angular.module('facerace', ['angular-gestures'])
 
 	$scope.configVisible = true;
 
+	$scope.debugObject = {
+		playerMetrics: $scope.playerMetrics,
+		config: config
+	};
 	// $scope.showCamera = true;
 }])
 .directive('scene', function() {
@@ -79,7 +83,7 @@ angular.module('facerace', ['angular-gestures'])
 			var client = faceraceClient('http://' + window.location.host, element, $scope.controls, $scope.config);
 			console.log(client);
 			client.on('playerMetrics', function(metrics) {
-				$scope.playerMetrics = metrics;
+				$scope.debugObject.playerMetrics = metrics;
 			});
 
 			$scope.faceraceClient = client;

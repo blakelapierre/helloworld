@@ -14,9 +14,10 @@
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="/js/gestures.js"></script>
 	<script type="text/javascript" src="/js/smoothie.1.19.js"></script>
+	<script type="text/javascript" src="/js/facerace/debug.js"></script>
 	<script type="text/javascript" src="/js/facerace/simulator2.js"></script>
-	<script type="text/javascript" src="/js/facerace/client.js"></script>
 	<script type="text/javascript" src="/js/facerace/gameClient.js"></script>
+	<script type="text/javascript" src="/js/facerace/client.js"></script>
 	
 	<link rel="stylesheet" href="/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="/css/facerace.css" />
@@ -45,10 +46,11 @@
 		</div>
 	</div>
 	
+	<div object-editor object="debugObject"></div>
 	<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
 		<div ng-repeat="(key, value) in config.camera">
 			<label>{{key}}</label>
-			<input type="range" ng-model="config.camera[key]" /> {{value}}
+			<input type="range" step="1" ng-model="config.camera[key]" /> {{value}}
 		</div>
 		<div ng-repeat="(key, value) in playerMetrics">
 			<label>{{key}}</label>

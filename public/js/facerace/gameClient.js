@@ -1,9 +1,10 @@
 var faceraceClient = (function() {
-	var create = function(url, element, controls) {
+	var create = function(url, element, controls, config) {
 		element = $(element);
+		config = config || {};
 		
 		var graphics = createScene(element),
-			game = startGame(url, controls, graphics);
+			game = startGame(url, controls, graphics, config);
 
 		return game;
 	};
@@ -30,25 +31,26 @@ var faceraceClient = (function() {
 		element.append(renderer.domElement);
 		element.append(stats.domElement);
 
-		var callback = function() {
-			var height = window.innerHeight,
-				width = window.innerWidth;
+		var resize = function() {
+			var height = element.height(),
+				width = element.width();
 				
 			renderer.setSize(width, height);
 			camera.aspect = width / height;
 			camera.updateProjectionMatrix();
 		};
-		window.addEventListener('resize', callback, false);
+		window.addEventListener('resize', resize, false);
 
 		return {
 			camera: camera,
 			scene: scene,
 			renderer: renderer,
-			stats: stats
+			stats: stats,
+			resize: resize
 		};
 	};
 
-	var startGame = function(url, controls, graphics) {
+	var startGame = function(url, controls, graphics, config) {
 		var simulator = faceraceSimulator(20),
 			camera = graphics.camera,
 			scene = graphics.scene,
@@ -65,6 +67,8 @@ var faceraceClient = (function() {
 			player = null, 
 			playerID = null,
 			playerIndex = null;
+
+		setDefaults(config);
 
 		var getWorld = function() { return simulator.world; };
 
@@ -86,7 +90,8 @@ var faceraceClient = (function() {
 
 			playerID = data.playerID;
 			playerIndex = sourceWorld.playerMap[data.playerID];
-			player = sourceWorld.players[playerIndex];
+			player = world.players[playerIndex];
+			fire('playerMetrics', player);
 
 			player.controls = controls;
 
@@ -147,7 +152,8 @@ var faceraceClient = (function() {
 			var index = world.playerMap[state.playerID];
 			if (index !== playerIndex) {
 				playerIndex = index;
-				player = players[playerIndex];			
+				player = players[playerIndex];
+				fire('playerMetrics', player);		
 			}
 		};
 
@@ -181,11 +187,11 @@ var faceraceClient = (function() {
 					speed = new THREE.Vector3().fromArray(target.simulatorPlayer.velocity).length();
 
 				direction.normalize();
-				direction.multiplyScalar(20 + (speed / 30));
+				direction.multiplyScalar(config.camera.trailDistance + (speed / 5));
 
 				camera.position.copy(target.position);
 				camera.position.sub(direction);
-				camera.position.z = 20 + (speed / 60);
+				camera.position.z = config.camera.heightFromGround + (speed / 10);
 
 				camera.lookAt(target.position);
 
@@ -197,7 +203,7 @@ var faceraceClient = (function() {
 
 				camera.quaternion.multiply(new THREE.Quaternion(0, 0, Math.sin(angle), Math.cos(angle)));
 				
-				camera.fov = 80 + (speed / 60);
+				camera.fov = config.camera.fov + (speed / 60);
 
 				camera.updateProjectionMatrix();
 			}
@@ -246,8 +252,18 @@ var faceraceClient = (function() {
 
 		var createPlane = function(imageUrl, width, height) {
 			var map = THREE.ImageUtils.loadTexture(imageUrl),
-				material = new THREE.MeshLambertMaterial({
-					ambient: 0xffffff, map: map, side: THREE.DoubleSide
+				material = new THREE.ShaderMaterial({
+					fragmentShader: document.getElementById('plane-fragment-shader-swirl').textContent,
+					vertexShader: document.getElementById('plane-vertex-shader-swirl').textContent,
+					uniforms: {
+						texture: {type: 't', value: map},
+						width: {type: 'f', value: width},
+						height: {type: 'f', value: height},
+						radius: {type: 'f', value: 10},
+						angle: {type: 'f', value: 0.8},
+						center: {type: 'v2', value: new THREE.Vector2(width / 2, height / 2)}
+					},
+					transparent: true
 				});
 				
 			map.anisotropy = renderer.getMaxAnisotropy();
@@ -257,16 +273,42 @@ var faceraceClient = (function() {
 		var sendControls = function() {
 			emit('controls', {controls: controls});
 		};
-		game.controlsUpdated = sendControls;
 
 		var setFace = function(data) {
 			if (data) {
 				emit('setFace', {image: data});
 			}
 		};
-		game.setFace = setFace;
+
+		var listeners = {},
+			fire = function(name, data) {
+				_.each(listeners[name] || [], function(listener) {
+					listener(data, name);
+				});
+			},
+			on = function(name, callback) {
+				var l = listeners[name] || [];
+				l.push(callback);
+				listeners[name] = l;
+			};
+
+		_.extend(game, {
+			controlsUpdated: sendControls,
+			setFace: setFace,
+			resize: graphics.resize,
+			on: on
+		});
 
 		return game;
+	};
+
+	var setDefaults = function(config) {
+		var camera = config.camera || {};
+		camera.trailDistance = camera.trailDistance || 20;
+		camera.heightFromGround = camera.heightFromGround || 30;
+		camera.fov = camera.fov || 80;
+		config.camera = camera;
+
 	};
 
     return create;
@@ -275,7 +317,6 @@ var faceraceClient = (function() {
 var clamp = function(value, min, max) {
   return Math.min(Math.max(value, min), max);
 };
-
 
 var exports = exports || {};
 exports.faceraceClient = faceraceClient;

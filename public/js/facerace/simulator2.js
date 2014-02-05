@@ -189,7 +189,7 @@ var faceraceSimulator = (function() {
 						turnSpeed: Math.PI / 2
 					},
 					face: image,
-					scale: 2,
+					scale: 4,
 					pingStart: 0,
 					latency: 0,
 					lastControlsUpdate: {

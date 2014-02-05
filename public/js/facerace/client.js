@@ -7,6 +7,12 @@ angular.module('facerace', ['angular-gestures'])
 			gamma: new TimeSeries()
 		};
 
+	var config = {
+		camera: {
+			
+		}
+	};
+
 	var controlsChanged = function() {
 		$scope.$apply();
 	};
@@ -29,6 +35,7 @@ angular.module('facerace', ['angular-gestures'])
 	_.extend($scope, {
 		debug: true,
 		controls: controls,
+		config: config,
 		controlsMetrics: controlsMetrics,
 		accelerate: function() {
 			controls.up = true;
@@ -55,18 +62,27 @@ angular.module('facerace', ['angular-gestures'])
 		}
 	});
 
+	$scope.$watch('configVisible', function(newValue) {
+		console.log('config');
+		setTimeout($scope.faceraceClient.resize, 0);
+	});
+
 	$scope.calibrate();
 
-	$scope.showCamera = true;
-	setTimeout(function() {
-		$scope.showCamera = true;
-		$scope.$apply();
-	}, 2000);
+	$scope.configVisible = true;
+
+	// $scope.showCamera = true;
 }])
 .directive('scene', function() {
 	return {
 		link: function($scope, element, attribute) {
-			$scope.faceraceClient = faceraceClient('http://' + window.location.host, element, $scope.controls);
+			var client = faceraceClient('http://' + window.location.host, element, $scope.controls, $scope.config);
+			console.log(client);
+			client.on('playerMetrics', function(metrics) {
+				$scope.playerMetrics = metrics;
+			});
+
+			$scope.faceraceClient = client;
 		}
 	};
 })
@@ -76,15 +92,26 @@ angular.module('facerace', ['angular-gestures'])
 			var controls = $scope.controls;
 
 			var keymap = {
+				// tab
 				9 : function(b) { $scope.infoVisible = b && !$scope.infoVisible || !b && $scope.infoVisible; $scope.controlsChanged(); },
+				// space
 				32: function(b) { controls.space= b; $scope.controlsChanged(); },
+				// left arrow
 				37: function(b) { controls.left = b; setTurn(); $scope.controlsChanged(); },
+				// up arrow
 				38: function(b) { controls.up	= b; $scope.controlsChanged(); },
+				// right arrow
 				39: function(b) { controls.right= b; setTurn(); $scope.controlsChanged(); },
-				40: function(b) { controls.down = b; $scope.controlsChanged(); }
+				// down arrow
+				40: function(b) { controls.down = b; $scope.controlsChanged(); },
+				// c
+				67: function(b) { $scope.configVisible = b && !$scope.configVisible || !b && $scope.configVisible; $scope.controlsChanged(); }
 			};
 
-			keymap[119] = keymap[38];
+			keymap[65] = keymap[37]; // a
+			keymap[87] = keymap[38]; // w
+			keymap[68] = keymap[39]; // d
+			keymap[83] = keymap[40]; // s
 
 			var setTurn = function() {
 				var turn = 0;
@@ -182,6 +209,8 @@ angular.module('facerace', ['angular-gestures'])
 				video = element.find('video')[0],
 				finalWidth = 128,
 				finalHeight = 160;
+
+			finalContext.globalAlpha = 0.5;
 
 			$scope.finalWidth = finalWidth;
 			$scope.finalHeight = finalHeight;

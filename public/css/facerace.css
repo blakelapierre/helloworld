@@ -55,6 +55,29 @@
 	bottom: 0px;
 }
 
+.config-panel {
+	z-index: 10000;
+	position: relative;
+	display: none;
+}
+
+.config-panel.show-config {
+	position: absolute;
+	display: block;
+	right: 0px;
+	height: 100%;
+	overflow: auto;
+	border: solid 1px #999;
+	background-color: #fff;
+	width: 20%;
+	left: inherit;
+}
+
+.client.show-config {
+	left: 0px;
+	width: 80%;
+}
+
 .accelerator {
 	z-index: 9999;
 	position: absolute;

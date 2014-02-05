@@ -22,6 +22,7 @@
 	<link rel="stylesheet" href="/css/facerace.css" />
 </head>
 <body ng-controller="ClientCtrl">
+	
 	<div class="info" ng-show="infoVisible">
 		<div orientation-metrics class="orientation">
 			<canvas class="alpha" width="300" height="50"></canvas>
@@ -43,18 +44,120 @@
 			</table>
 		</div>
 	</div>
-	<div id="accelerator" class="accelerator" ng-click="accelerate()">{{test}}</div>
-	<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
-	<div id="brake" class="brake" ng-click="brake()"></div>
+	
+	<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
+		<div ng-repeat="(key, value) in config.camera">
+			<label>{{key}}</label>
+			<input type="range" ng-model="config.camera[key]" /> {{value}}
+		</div>
+		<div ng-repeat="(key, value) in playerMetrics">
+			<label>{{key}}</label>
+			<span>{{value}}</span>
+		</div>
+	</div>
+	
 	<camera show-camera="showCamera" face-data="faceData"></camera>
-	<div class="client" player-controller>
-		<div scene></div>
+	
+	<div scene ng-class="{'show-config': configVisible}" class="client" player-controller>
+		
+		
 		<div class="dashboard">
 			<span class="glyphicon glyphicon-arrow-down" ng-show="controls.down"></span>
 			<span class="glyphicon glyphicon-arrow-up" ng-show="controls.up"></span>
 			<span class="glyphicon glyphicon-arrow-left" ng-show="controls.left"></span>
 			<span class="glyphicon glyphicon-arrow-right" ng-show="controls.right"></span>
 		</div>
+
+		<div id="accelerator" class="accelerator" ng-click="accelerate()"></div>
+		<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
+		<div id="brake" class="brake" ng-click="brake()"></div>
 	</div>
+
+
+	<script id="plane-vertex-shader" type="x-shader/x-vertex">
+		varying vec2 vUv;
+
+		void main()
+		{
+		    vUv = uv;
+		    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		}
+	</script>
+
+	<script id="plane-fragment-shader" type="x-shader/x-fragment">
+		#ifdef GL_ES
+		precision highp float;
+		#endif
+
+		uniform sampler2D texture;
+		uniform float width;
+		uniform float height;
+		varying vec2 vUv;
+
+		void main(void)
+		{
+		    vec2 position = vUv;
+
+		    float midX = width / 2.0;
+		    float midY = height / 2.0;
+
+		    vec4 color = texture2D(texture, position);
+
+		    color[3] = position[0] / width;
+
+		    gl_FragColor = color;
+		}
+	</script>
+
+	<script id="plane-vertex-shader-swirl" type="x-shader/x-vertex">
+		varying vec2 vUv;
+
+		void main()
+		{
+		    vUv = uv;
+		    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		}
+	</script>
+
+	<script id="plane-fragment-shader-swirl" type="x-shader/x-fragment">
+		// Scene buffer
+		uniform sampler2D texture; 
+
+		uniform float time;
+
+		uniform float width;
+		uniform float height;
+
+		// Swirl effect parameters
+		uniform float radius;
+		uniform float angle;
+		uniform vec2 center;
+
+		varying vec2 vUv;
+
+		vec4 PostFX(sampler2D texture, vec2 uv, float time)
+		{
+		  vec2 texSize = vec2(width, height);
+		  vec2 tc = uv * texSize;
+		  tc -= center;
+		  float dist = length(tc);
+		  if (dist < radius) 
+		  {
+		    float percent = (radius - dist) / radius;
+		    float theta = percent * percent * angle * 8.0;
+		    float s = sin(theta);
+		    float c = cos(theta);
+		    tc = vec2(dot(tc, vec2(c, -s)), dot(tc, vec2(s, c)));
+		  }
+		  tc += center;
+		  vec3 color = texture2D(texture, tc / texSize).rgb;
+		  return vec4(color, 1.0);
+		}
+
+		void main (void)
+		{
+		  gl_FragColor = PostFX(texture, vUv, time);
+		}
+	</script>
 </body>
 </html>

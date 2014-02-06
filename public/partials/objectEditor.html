@@ -1,0 +1,18 @@
+<div class="object-editor"> 
+	<div ng-repeat="(key, value) in object">
+		<div ng-if="isType(value, 'object')">
+			<div class="header" ng-click="expand[key] = !expand[key]"> 		
+				<span ng-class="{glyphicon:true, 'glyphicon-plus': !expand[key], 'glyphicon-minus': expand[key]}"></span>
+				<span>{{key}}</span> 
+			</div>
+			<div ng-if="expand[key]">
+				<div object-editor object="object[key]">{{key}}</div> 
+			</div>
+		</div>
+		<div ng-if="!isType(value, 'object')">
+			<span>{{key}}</span> 
+			<input ng-if="isType(value, 'number')" type="range" value="{{value}}" /> 
+			<input ng-if="isType(value, 'string')" type="text" value="{{value}}" /> 
+		</div>
+	</div> 
+</div>

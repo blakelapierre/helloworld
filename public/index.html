@@ -47,6 +47,7 @@
 	</div>
 	
 	<div object-editor object="debugObject"></div>
+
 	<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
 		<div ng-repeat="(key, value) in config.camera">
 			<label>{{key}}</label>
@@ -61,8 +62,6 @@
 	<camera show-camera="showCamera" face-data="faceData"></camera>
 	
 	<div scene ng-class="{'show-config': configVisible}" class="client" player-controller>
-		
-		
 		<div class="dashboard">
 			<span class="glyphicon glyphicon-arrow-down" ng-show="controls.down"></span>
 			<span class="glyphicon glyphicon-arrow-up" ng-show="controls.up"></span>

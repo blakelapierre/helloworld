@@ -185,14 +185,10 @@ var faceraceClient = (function() {
 				var d = target.simulatorPlayer.direction,
 					direction = new THREE.Vector3(Math.sin(d), Math.cos(d), 0),
 					speed = new THREE.Vector3().fromArray(target.simulatorPlayer.velocity).length();
-
-				
-
 				
 				var moveBack = parseInt(config.camera.trailDistance) + (speed / 5);
 				direction.normalize();
 				direction.multiplyScalar(moveBack);
-				console.log(config.camera.trailDistance, moveBack, speed);
 
 				camera.position.copy(target.position);
 				camera.position.sub(direction);

@@ -1,7 +1,7 @@
 angular.module('faceraceDebug', [])
 .directive('objectEditor', function() {
 	return {
-		template: '<div ng-include="getUrl()"></div>',
+		template: '<div class="object-editor" ng-include="getUrl()"></div>',
 		scope: {
 			object: '='
 		},
@@ -22,8 +22,14 @@ angular.module('faceraceDebug', [])
 				return value === null || typeof value === 'undefined';
 			};
 
-			$scope.toggle = function() {
-				console.log('t', arguments);
+			$scope.typeOf = function(value) {
+				console.log('typeof', value, typeof value);
+				return typeof value;
+			};
+
+			$scope.ex = function(key) {
+				console.log('ex', key);
+				$scope.expand[key] = !$scope.expand[key];
 			};
 
 			$scope.$watch('object', function() {

@@ -46,14 +46,14 @@
 		</div>
 	</div>
 	
-	<div object-editor object="debugObject"></div>
+	<!-- <div object-editor object="debugObject"></div> -->
 
 	<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
-		<div ng-repeat="(key, value) in config.camera">
+		<div ng-repeat="(key, value) in debugObject.config.camera">
 			<label>{{key}}</label>
 			<input type="range" step="1" ng-model="config.camera[key]" /> {{value}}
 		</div>
-		<div ng-repeat="(key, value) in playerMetrics">
+		<div ng-repeat="(key, value) in debugObject.playerMetrics">
 			<label>{{key}}</label>
 			<span>{{value}}</span>
 		</div>

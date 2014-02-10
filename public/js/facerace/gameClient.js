@@ -134,15 +134,22 @@ var faceraceClient = (function() {
 
 			world.startTime = sourceWorld.startTime;
 
-			_.each(sourceWorld.players, function(player) {
+			world.playerMap = sourceWorld.playerMap;
+
+			_.each(sourceWorld.players, function(player, index) {
 				var id = player.id,
-					p = players[id];
+					index = world.playerMap[id],
+					p = players[index];
 
 				if (p) {
 					delete player.lastControlsUpdate; // ugly
 					_.extend(p, player, {step: p.step });
+					//console.log('step', p.id, p.step);
 				}
-				else players[id] = player;
+				else {
+					world.playerMap[id] = players.length;
+					players.push(player);
+				}
 			});
 
 			_.each(sourceWorld.stars, function(star, index) {
@@ -164,7 +171,7 @@ var faceraceClient = (function() {
 
 			var index = world.playerMap[playerID];
 			
-			player = world.players[playerIndex];		
+			player = world.players[index];		
 			
 			simulator.setPlayerControls(player, controls);
 			sendControls();

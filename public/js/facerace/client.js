@@ -69,7 +69,7 @@ angular.module('facerace', ['angular-gestures', 'faceraceDebug'])
 
 	$scope.calibrate();
 
-	$scope.configVisible = true;
+	//$scope.configVisible = true;
 
 	$scope.debugObject = {
 		playerMetrics: $scope.playerMetrics,
@@ -84,6 +84,7 @@ angular.module('facerace', ['angular-gestures', 'faceraceDebug'])
 			console.log(client);
 			client.on('playerMetrics', function(metrics) {
 				$scope.debugObject.playerMetrics = metrics;
+				$scope.$apply();
 			});
 
 			$scope.faceraceClient = client;

@@ -7,5 +7,9 @@
         "socket.io": "latest",
         "underscore": "latest"
     },
+    "devDependencies": {
+    	"grunt": "latest",
+    	"grunt-exec": "latest"
+    },
     "author": "Blake La Pierre"
 }

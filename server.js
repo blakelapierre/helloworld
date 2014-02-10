@@ -98,3 +98,13 @@ exports.startServer = function(config, callback) {
 
 	return callback(webserver, io);
 };
+
+var config = {
+	server: {
+		port: 3006
+	}
+};
+
+exports.startServer(config, function(webserver, io) {
+
+});

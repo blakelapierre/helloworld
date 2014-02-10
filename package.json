@@ -9,7 +9,7 @@
     },
     "devDependencies": {
     	"grunt": "latest",
-    	"grunt-exec": "latest"
+    	"grunt-bg-shell": "latest"
     },
     "author": "Blake La Pierre"
 }

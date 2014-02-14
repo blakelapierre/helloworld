@@ -107,6 +107,19 @@
 	height: 40px;
 }
 
+.vehicle-instrumentation {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	z-index: 9999;
+}
+
+.vehicle-instrumentation canvas {
+	float: left;
+	margin-right: 5px;
+}
+
 .camera {
 	position: absolute;
 	top: 0px;

@@ -11,6 +11,8 @@
 	<script type="text/javascript" src="/js/gl-matrix-min.js"></script>
 	<script type="text/javascript" src="/js/three.min.js"></script>
 	<script type="text/javascript" src="/js/stats.min.js"></script>
+	<script type="text/javascript" src="/js/jsoneditor-min.js"></script>
+	<script type="text/javascript" src="/js/ShaderParticles.min.js"></script>
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="/js/gestures.js"></script>
 	<script type="text/javascript" src="/js/smoothie.1.19.js"></script>
@@ -18,8 +20,11 @@
 	<script type="text/javascript" src="/js/facerace/simulator2.js"></script>
 	<script type="text/javascript" src="/js/facerace/gameClient.js"></script>
 	<script type="text/javascript" src="/js/facerace/client.js"></script>
+	<script type="text/javascript" src="/js/facerace/cameras/driveCamera.js"></script>
+
 	
 	<link rel="stylesheet" href="/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="/css/jsoneditor-min.css" />
 	<link rel="stylesheet" href="/css/facerace.css" />
 </head>
 <body ng-controller="ClientCtrl">
@@ -45,18 +50,25 @@
 			</table>
 		</div>
 	</div>
+
+	<div vehicle-instrumentation target="debugObject.playerMetrics" class="vehicle-instrumentation">
+		<canvas ng-repeat="metric in metrics" ng-init="canvasCreated(metric)" class="{{metric}}" width="300" height="50"></canvas>
+	</div>
 	
-	<!-- <div object-editor object="debugObject"></div> -->
+	
 
 	<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
-		<div ng-repeat="(key, value) in debugObject.config.camera">
+		<div object-editor object="debugObject"></div>
+		<!-- <editobject object="debugObject"></editobject> -->
+
+		<!-- <div ng-repeat="(key, value) in debugObject.config.camera">
 			<label>{{key}}</label>
 			<input type="range" step="1" ng-model="config.camera[key]" /> {{value}}
 		</div>
 		<div ng-repeat="(key, value) in debugObject.playerMetrics">
 			<label>{{key}}</label>
 			<span>{{value}}</span>
-		</div>
+		</div> -->
 	</div>
 	
 	<camera show-camera="showCamera" face-data="faceData"></camera>

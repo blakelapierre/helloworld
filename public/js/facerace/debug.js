@@ -1,40 +1,74 @@
-angular.module('faceraceDebug', [])
+angular.module('faceraceDebug', ['JSON'])
 .directive('objectEditor', function() {
 	return {
-		template: '<div class="object-editor" ng-include="getUrl()"></div>',
+		template: '<div class="object-editor"></div>',
 		scope: {
 			object: '='
 		},
 
 		link: function($scope, element, attributes) {
-
-			$scope.expand = {};
-			$scope.getUrl = function() {
-				console.log('geturl', $scope.object);
-				return $scope.isNull($scope.object) ? null : '/partials/objectEditor.html';
-			};
-
-			$scope.isType = function(value, type) {
-				return typeof value === type;
-			};
-
-			$scope.isNull = function(value) {
-				return value === null || typeof value === 'undefined';
-			};
-
-			$scope.typeOf = function(value) {
-				console.log('typeof', value, typeof value);
-				return typeof value;
-			};
-
-			$scope.ex = function(key) {
-				console.log('ex', key);
-				$scope.expand[key] = !$scope.expand[key];
-			};
-
-			$scope.$watch('object', function() {
-				console.log('watch', arguments);
+			var editor = new jsoneditor.JSONEditor(element[0], {
+				mode: 'tree',
+				change: function() {
+					updateObject($scope.object, editor.get());
+					$scope.$apply();
+				}
 			});
+
+			var updateObject = function(obj, from, key) {
+				if (key) {
+					var oldValue = obj[key],
+						newValue = from[key];
+					
+					if (newValue == null) return ;
+
+					if (_.isArray(newValue)) {
+						if (oldValue.length != newValue.length) throw "obj.length must equal from.length!";
+
+						for (var i = 0; i < obj.length; i++) {
+							updateObject(oldValue, newValue, i);
+						}	
+					}
+					else if (_.isObject(newValue)) {
+						for (var key in oldValue) {
+							updateObject(oldValue, newValue, key);
+						}
+					}
+					else {
+						obj[key] = newValue;
+					}
+				}
+				else {
+					for (var key in obj) {
+						updateObject(obj, from, key);
+					}
+				}
+			};
+
+			var updateEditor = function(node, obj) {
+				if (node.type == 'object' || node.type == 'array') {
+					for (var i = 0; i < node.childs.length; i++) {
+						var child = node.childs[i];
+						updateEditor(child, obj[child.field || child.index]);
+					}
+				}
+				else {
+					node.updateValue(obj);
+				}
+			};
+
+			var interval = null;
+			$scope.$watch('object', function() {
+				editor.set($scope.object);
+
+				if (interval) clearInterval(interval);
+				if ($scope.object) {
+					setInterval(function() {
+						updateEditor(editor.node, $scope.object);
+					}, 2000);
+				}
+			});
+
 			console.log('scope', $scope);
 			console.log(element);
 		}

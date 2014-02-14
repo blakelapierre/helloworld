@@ -36,6 +36,7 @@ exports.startServer = function(config, callback) {
 
 	    socket.on('controls', function(data) {
 	    	simulator.setPlayerControls(socket.player, data.controls);
+	    	socket.broadcast.emit('controls', {id: socket.player.id, controls: data.controls});
 	    });
 
 	    socket.on('setFace', function(data) {

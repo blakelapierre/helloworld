@@ -2,24 +2,25 @@ var faceraceClient = (function() {
 	var create = function(url, element, controls, config) {
 		element = $(element);
 		config = config || {};
+
+		setDefaults(config);
 		
-		var graphics = createScene(element),
+		var graphics = createScene(element, config),
 			game = startGame(url, controls, graphics, config);
 
 		return game;
 	};
 
-	var createScene = function(element) {
+	var createScene = function(element, config) {
 		var height = window.innerHeight,
 			width = window.innerWidth,
-			camera = new THREE.PerspectiveCamera(90, width / height, 1, 5000),
+			camera = new facerace.DriveCamera(90, width / height, 1, 5000, null, config.camera),
 			scene = new THREE.Scene(),
 			renderer = new THREE.WebGLRenderer({antialias: true}),
 			stats = new Stats();
 
+
 		camera.up.set(0, 0, 1);
-		camera.position.z = 1000;
-		camera.position.y = -100;
 
 		scene.add(new THREE.AmbientLight(0xffffff));
 
@@ -56,7 +57,8 @@ var faceraceClient = (function() {
 			scene = graphics.scene,
 			renderer = graphics.renderer,
 			stats = graphics.stats,
-			socket = io.connect(url, {reconnect: false})
+			particleGroup = graphics.particleGroup,
+			socket = io.connect(url, {reconnect: false}),
 			emit = function(name, data) { socket.emit(name, data); },
 			game = {
 				socket: socket,
@@ -66,9 +68,8 @@ var faceraceClient = (function() {
 			playerObjects = {},
 			player = null, 
 			playerID = null,
-			playerIndex = null;
-
-		setDefaults(config);
+			playerIndex = null,
+			oldControls = {};
 
 		var getWorld = function() { return simulator.world; };
 
@@ -105,6 +106,11 @@ var faceraceClient = (function() {
 
 		socket.on('world', function(data) {
 			processNewState(data);
+		});
+
+		socket.on('controls', function(data) {
+			var player = simulator.getPlayer(data.id);
+			simulator.setPlayerControlsAtStep(player, data.controls, data.controls.step);			
 		});
 
 		var pingStart = 0;
@@ -189,68 +195,83 @@ var faceraceClient = (function() {
 			var target = playerObjects[playerID] || scene;
 
 			if (typeof target.simulatorPlayer !== 'undefined') {
-				var d = target.simulatorPlayer.direction,
-					direction = new THREE.Vector3(Math.sin(d), Math.cos(d), 0),
-					speed = new THREE.Vector3().fromArray(target.simulatorPlayer.velocity).length();
-				
-				var moveBack = parseInt(config.camera.trailDistance) + (speed / 5);
-				direction.normalize();
-				direction.multiplyScalar(moveBack);
-
-				camera.position.copy(target.position);
-				camera.position.sub(direction);
-				camera.position.z = parseInt(config.camera.heightFromGround) + (speed / 10);
-
-				camera.lookAt(target.position);
-
-				var turn = -clamp(controls.turn, -1, 1),
-					angle = turn / 90 * Math.PI;
-
-				camera.quaternion.multiply(new THREE.Quaternion(0, 0, Math.sin(angle), Math.cos(angle)).normalize());
-				
-				camera.fov = parseInt(config.camera.fov) + (speed / 60);
-
-				camera.updateProjectionMatrix();
+				camera.setTarget(target);
+				camera.updateDriveCamera();
 			}
 			else {
 				//graphics.camera.position.set(target.position.x, target.position.y, 1000);
 			}
-
 			
 			renderer.render(scene, camera);
 
 			stats.update();
 			window.requestAnimationFrame(step);
+
+			fire('frame');
 		};
 		
 		var logs = 0;
 		var updatePlayer = function(simulatorPlayer) {
 			var id = simulatorPlayer.id,
-				pObject = playerObjects[id];
+				position = simulatorPlayer.position,
+				pObject = playerObjects[id],
+				targetZ = position[2];
 			
 			if (!pObject) {
-				pObject = createPlane(simulatorPlayer.face, 5, 5);
+				pObject = createPlayerObject(simulatorPlayer);
 				pObject.rotateX(Math.PI / 2);
 				scene.add(pObject);
 				playerObjects[id] = pObject;
 			}
 
 			if (id === playerID) {
-				pObject.position.set(simulatorPlayer.position[0], simulatorPlayer.position[1], simulatorPlayer.position[2]);
+				pObject.position.set(position[0], position[1], position[2]);
 			}
 			else {
-				pObject.targetPosition = new THREE.Vector3().fromArray(simulatorPlayer.position);
+				pObject.targetPosition = new THREE.Vector3().fromArray(position);
 				
 				var oldPosition = pObject.position;
+
 				pObject.position = pObject.targetPosition;
 				pObject.position.lerp(oldPosition, 0.5);
 			}
 						
+			pObject.position.z = targetZ + 5 + 5 * Math.sin(simulatorPlayer.step * 20 / 1000 * 2 * Math.PI / 5);
+
 			pObject.rotation.y = -simulatorPlayer.direction;
 
 			pObject.scale.set(simulatorPlayer.scale, simulatorPlayer.scale, simulatorPlayer.scale);
 
 			pObject.simulatorPlayer = simulatorPlayer;
+
+			pObject.particleGroup.tick(20 / 1000);
+
+			return pObject;
+		};
+
+		var createPlayerObject = function(simulatorPlayer) {
+			var pObject = createPlane(simulatorPlayer.face, 5, 5);
+
+			pObject.particleGroup = new SPE.Group({
+				texture: THREE.ImageUtils.loadTexture('/images/particles/smokeparticle.png'),
+				maxAge: 3
+			});
+
+			pObject.particleGroup.addEmitter(new SPE.Emitter({
+				type: 'cube',
+				position: new THREE.Vector3(0, -1, 0),
+				positionSpread: new THREE.Vector3(10, 0, 10),
+				acceleration: new THREE.Vector3(1, 0, 1),
+				accelerationSpread: new THREE.Vector3(1, 0, 1),
+				particlesPerSecond: 2,
+				sizeStart: 16,
+				sizeEnd: 32,
+				opacityStart: 1,
+				opacityEnd: 0,
+				colorStart: new THREE.Color('grey'),
+				colorEnd: new THREE.Color('brown')
+			}));
+			pObject.add(pObject.particleGroup.mesh);
 
 			return pObject;
 		};
@@ -268,15 +289,24 @@ var faceraceClient = (function() {
 						angle: {type: 'f', value: 0.8},
 						center: {type: 'v2', value: new THREE.Vector2(width / 2, height / 2)}
 					},
-					transparent: true
+					transparent: false,
+					side: THREE.DoubleSide
 				});
 				
 			map.anisotropy = renderer.getMaxAnisotropy();
 			return new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 		};
 
+		var controlList = ['turn', 'up', 'down', 'left', 'right'];
 		var sendControls = function() {
-			emit('controls', {controls: controls});
+			var controlsChanged = function() {
+				return !_.every(controlList, function(control) { return controls[control] == oldControls[control]; });
+			};
+
+			if (controlsChanged()) {
+				emit('controls', {controls: controls});
+				_.each(controlList, function(control) { oldControls[control] = controls[control]; });
+			}
 		};
 
 		var setFace = function(data) {
@@ -309,9 +339,11 @@ var faceraceClient = (function() {
 
 	var setDefaults = function(config) {
 		var camera = config.camera || {};
-		camera.trailDistance = camera.trailDistance || 20;
+		camera.trailDistance = camera.trailDistance || 100;
 		camera.heightFromGround = camera.heightFromGround || 30;
 		camera.fov = camera.fov || 80;
+		camera.offset = camera.offset || new THREE.Vector3(0, 0, 50);
+
 		config.camera = camera;
 
 	};

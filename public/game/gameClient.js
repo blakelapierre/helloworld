@@ -259,17 +259,16 @@ var faceraceClient = (function() {
 
 			pObject.particleGroup.addEmitter(new SPE.Emitter({
 				type: 'cube',
-				position: new THREE.Vector3(0, -1, 0),
-				positionSpread: new THREE.Vector3(10, 0, 10),
-				acceleration: new THREE.Vector3(1, 0, 1),
-				accelerationSpread: new THREE.Vector3(1, 0, 1),
+				position: new THREE.Vector3(0, -1.5, 0),
+				positionSpread: new THREE.Vector3(5, 0, 5),
+				accelerationSpread: new THREE.Vector3(2, 0, 2),
 				particlesPerSecond: 2,
-				sizeStart: 16,
-				sizeEnd: 32,
-				opacityStart: 1,
+				sizeStart: 8,
+				sizeEnd: 24,
+				opacityStart: 0.8,
 				opacityEnd: 0,
-				colorStart: new THREE.Color('grey'),
-				colorEnd: new THREE.Color('brown')
+				colorStart: new THREE.Color('black'),
+				colorEnd: new THREE.Color('white')
 			}));
 			pObject.add(pObject.particleGroup.mesh);
 

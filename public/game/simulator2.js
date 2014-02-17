@@ -1,6 +1,6 @@
 if (typeof require === 'function' || window.require) {
 	_ = require('underscore');
-	vec3 = require('../gl-matrix-min.js').vec3;
+	vec3 = require('../js/lib/gl-matrix-min.js').vec3;
 };
 
 var faceraceSimulator = (function() {

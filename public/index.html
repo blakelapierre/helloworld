@@ -5,22 +5,25 @@
 
 	<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
 
-	<script type="text/javascript" src="/js/jquery.2.0.3.min.js"></script>
-	<script type="text/javascript" src="/js/angular.1.2.0rc1.min.js"></script>
-	<script type="text/javascript" src="/js/underscore.1.4.4.js"></script>
-	<script type="text/javascript" src="/js/gl-matrix-min.js"></script>
-	<script type="text/javascript" src="/js/three.min.js"></script>
-	<script type="text/javascript" src="/js/stats.min.js"></script>
-	<script type="text/javascript" src="/js/jsoneditor-min.js"></script>
-	<script type="text/javascript" src="/js/ShaderParticles.min.js"></script>
+	<script type="text/javascript" src="/js/lib/jquery.2.0.3.min.js"></script>
+	<script type="text/javascript" src="/js/lib/angular.1.2.0rc1.min.js"></script>
+	<script type="text/javascript" src="/js/lib/underscore.1.4.4.js"></script>
+	<script type="text/javascript" src="/js/lib/gl-matrix-min.js"></script>
+	<script type="text/javascript" src="/js/lib/three.min.js"></script>
+	<script type="text/javascript" src="/js/lib/stats.min.js"></script>
+	<script type="text/javascript" src="/js/lib/jsoneditor-min.js"></script>
+	<script type="text/javascript" src="/js/lib/ShaderParticles.min.js"></script>
+	<script type="text/javascript" src="/js/lib/gestures.js"></script>
+	<script type="text/javascript" src="/js/lib/smoothie.1.19.js"></script>
+
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
-	<script type="text/javascript" src="/js/gestures.js"></script>
-	<script type="text/javascript" src="/js/smoothie.1.19.js"></script>
+
+	<script type="text/javascript" src="/game/cameras/driveCamera.js"></script>
+	<script type="text/javascript" src="/game/simulator2.js"></script>
+	<script type="text/javascript" src="/game/gameClient.js"></script>
+	
 	<script type="text/javascript" src="/js/facerace/debug.js"></script>
-	<script type="text/javascript" src="/js/facerace/simulator2.js"></script>
-	<script type="text/javascript" src="/js/facerace/gameClient.js"></script>
 	<script type="text/javascript" src="/js/facerace/client.js"></script>
-	<script type="text/javascript" src="/js/facerace/cameras/driveCamera.js"></script>
 
 	
 	<link rel="stylesheet" href="/css/bootstrap.min.css" />
@@ -51,9 +54,9 @@
 		</div>
 	</div>
 
-	<div vehicle-instrumentation target="debugObject.playerMetrics" class="vehicle-instrumentation">
+	<!-- <div vehicle-instrumentation target="debugObject.playerMetrics" class="vehicle-instrumentation">
 		<canvas ng-repeat="metric in metrics" ng-init="canvasCreated(metric)" class="{{metric}}" width="300" height="50"></canvas>
-	</div>
+	</div> -->
 	
 	
 

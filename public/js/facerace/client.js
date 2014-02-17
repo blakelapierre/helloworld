@@ -87,7 +87,7 @@ angular.module('facerace', ['angular-gestures', 'faceraceDebug'])
 					playerMetrics: $scope.playerMetrics,
 					config: $scope.config
 				};
-				
+
 				$scope.$apply();
 			});
 
@@ -383,7 +383,7 @@ angular.module('facerace', ['angular-gestures', 'faceraceDebug'])
 					$scope.currentStreamUrl = $sce.trustAsResourceUrl(window.URL.createObjectURL(stream));
 					$scope.$apply();
 				}, function(err) {
-					alert(err.name);
+					console.log('error webkitGetUserMedia', err);
 				});
 			});
 		}

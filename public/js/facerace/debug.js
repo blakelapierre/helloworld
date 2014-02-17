@@ -1,4 +1,4 @@
-angular.module('faceraceDebug', ['JSON'])
+angular.module('faceraceDebug', [])
 .directive('objectEditor', function() {
 	return {
 		template: '<div class="object-editor"></div>',
@@ -68,9 +68,6 @@ angular.module('faceraceDebug', ['JSON'])
 					}, 2000);
 				}
 			});
-
-			console.log('scope', $scope);
-			console.log(element);
 		}
 	};
 });

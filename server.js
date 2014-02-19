@@ -14,7 +14,7 @@ exports.startServer = function(config, callback) {
 
 	io.set('log level', 0);
 
-	var simulator = require('./public/game/simulator2.js').simulator(20),
+	var simulator = require('./public/game/simulator.js').simulator(20),
 	    world = simulator.world;
 
 

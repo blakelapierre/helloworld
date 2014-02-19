@@ -69,29 +69,42 @@ var faceraceClient = (function() {
 			player = null, 
 			playerID = null,
 			playerIndex = null,
-			oldControls = {};
+			oldControls = {},
+			startTime = new Date().getTime();
 
 		var getWorld = function() { return simulator.world; };
 
-		game.world.startTime -= 500;
+		var measurements = 10,
+			pong = function(latency) {
+				
+			};
+
+		var adjustClock = function() {
+			if (--measurements == 0) return;
+		};
 
 		emit('joinGame', {name: 'blake', image: '/images/faces/blake.png'});
 
 		socket.on('welcome', function(data) {
 			var sourceWorld = data.world,
-				world = getWorld();
+				world = getWorld(),
+				welcomeTime = new Date().getTime(),
+				timeElapsed = data.currentTime - sourceWorld.start;
 			
+			console.log('game started', timeElapsed, welcomeTime, data);
+
 			world.playerMap = sourceWorld.playerMap;
 			_.each(sourceWorld.players, function(p) {
 				world.players.push(p);
 			});
 
 			world.step = sourceWorld.step;
-			world.startTime = sourceWorld.startTime;
+			world.start = welcomeTime - timeElapsed - ((welcomeTime - startTime) / 2);
 
 			playerID = data.playerID;
+			player = simulator.getPlayer(playerID);
 			playerIndex = sourceWorld.playerMap[data.playerID];
-			player = world.players[playerIndex];
+			
 			fire('playerMetrics', player);
 
 			player.controls = controls;
@@ -101,11 +114,21 @@ var faceraceClient = (function() {
 			course.up.set(1, 0, 0);
 			scene.add(course);
 
+			showMessage('Welcome to Face Race!');
+
+			adjustClock();
+
 			window.requestAnimationFrame(step);
 		});
 
 		socket.on('world', function(data) {
 			processNewState(data);
+		});
+
+		socket.on('newPlayer', function(data) {
+			console.log('newplayer', data);
+			simulator.insertPlayer(data.player);
+			showMessage(data.player.name + ' Joined the Race!');
 		});
 
 		socket.on('controls', function(data) {
@@ -114,6 +137,7 @@ var faceraceClient = (function() {
 		});
 
 		var pingStart = 0;
+			pong = function() {};
 		socket.on('ping', function() {
 			emit('pong', {time: new Date().getTime()});
 		});
@@ -123,13 +147,14 @@ var faceraceClient = (function() {
 				latency = now - pingStart,
 				difference = now - data.time - latency;
 
+			pong(latency);
 			setTimeout(ping, 1000);
-			console.log('latency', latency, difference);
 		});
 
 		var ping = function() {
 			pingStart = new Date().getTime();
 			emit('ping');
+			return pingStart;
 		};
 
 		var processNewState = function(state) {
@@ -138,23 +163,22 @@ var faceraceClient = (function() {
 				players = world.players,
 				stars = world.stars;
 
-			world.startTime = sourceWorld.startTime;
-
 			world.playerMap = sourceWorld.playerMap;
 
-			_.each(sourceWorld.players, function(player, index) {
-				var id = player.id,
-					index = world.playerMap[id],
-					p = players[index];
+			_.each(sourceWorld.players, function(sourcePlayer, index) {
+				var id = sourcePlayer.id,
+					localPlayer = simulator.getPlayer(id);
 
-				if (p) {
-					delete player.lastControlsUpdate; // ugly
-					_.extend(p, player, {step: p.step });
-					//console.log('step', p.id, p.step);
+				if (id == player.id) return;
+
+				if (localPlayer) {
+					//delete sourcePlayer.lastControlsUpdate; // ugly
+					// _.extend(localPlayer, _.omit(sourcePlayer, 'lastControlsUpdate'), {step: localPlayer.step });
+					_.extend(localPlayer, _.omit(sourcePlayer, 'lastControlsUpdate'));
+					simulator.updateLastControls(localPlayer);
 				}
 				else {
-					world.playerMap[id] = players.length;
-					players.push(player);
+					alert('error, bad player!');
 				}
 			});
 
@@ -162,33 +186,18 @@ var faceraceClient = (function() {
 				_.extend(stars[index], star);
 			});
 
-			var index = world.playerMap[state.playerID];
-			if (index !== playerIndex) {
-				playerIndex = index;
-				player = players[playerIndex];
-				fire('playerMetrics', player);		
-			}
 		};
 
 		var step = function(timestamp) {
 			var world = simulator.world,
 				simulatorPlayers = world.players,
-				stars = world.stars;
-
-			var index = world.playerMap[playerID];
-			
-			player = world.players[index];		
+				stars = world.stars,
+				player = simulator.getPlayer(playerID);
 			
 			simulator.setPlayerControls(player, controls);
 			sendControls();
 
 			simulator.runWorldToNow();
-
-			var index = world.playerMap[playerID];
-			if (index !== playerIndex) {
-				playerIndex = index;
-				player = world.players[playerIndex];			
-			}
 
 			_.each(simulatorPlayers, updatePlayer);
 
@@ -207,7 +216,7 @@ var faceraceClient = (function() {
 			stats.update();
 			window.requestAnimationFrame(step);
 
-			fire('frame');
+			fire('tick', world.step);
 		};
 		
 		var logs = 0;
@@ -217,12 +226,19 @@ var faceraceClient = (function() {
 				pObject = playerObjects[id],
 				targetZ = position[2];
 			
+			position[0] = position[0] || 0;
+			position[1] = position[1] || 0;
+			position[2] = position[2] || 0;
+
 			if (!pObject) {
 				pObject = createPlayerObject(simulatorPlayer);
+				
+				pObject.position.set(position[0], position[1], position[2]);
 				pObject.rotateX(Math.PI / 2);
 				scene.add(pObject);
 				playerObjects[id] = pObject;
 			}
+
 
 			if (id === playerID) {
 				pObject.position.set(position[0], position[1], position[2]);
@@ -235,6 +251,7 @@ var faceraceClient = (function() {
 				pObject.position = pObject.targetPosition;
 				pObject.position.lerp(oldPosition, 0.5);
 			}
+
 						
 			pObject.position.z = targetZ + 5 + 5 * Math.sin(simulatorPlayer.step * 20 / 1000 * 2 * Math.PI / 5);
 
@@ -245,6 +262,8 @@ var faceraceClient = (function() {
 			pObject.simulatorPlayer = simulatorPlayer;
 
 			pObject.particleGroup.tick(20 / 1000);
+
+			pObject.material.uniforms.time.value += 1;
 
 			return pObject;
 		};
@@ -286,7 +305,8 @@ var faceraceClient = (function() {
 						height: {type: 'f', value: height},
 						radius: {type: 'f', value: 10},
 						angle: {type: 'f', value: 0.8},
-						center: {type: 'v2', value: new THREE.Vector2(width / 2, height / 2)}
+						center: {type: 'v2', value: new THREE.Vector2(width / 2, height / 2)},
+						time: {type: 'f', value: 1.0}
 					},
 					transparent: false,
 					side: THREE.DoubleSide
@@ -296,13 +316,14 @@ var faceraceClient = (function() {
 			return new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 		};
 
-		var controlList = ['turn', 'up', 'down', 'left', 'right'];
+		var controlList = ['turn', 'up', 'down', 'left', 'right', 'space'];
 		var sendControls = function() {
 			var controlsChanged = function() {
 				return !_.every(controlList, function(control) { return controls[control] == oldControls[control]; });
 			};
 
 			if (controlsChanged()) {
+				controls.step = game.world.step;
 				emit('controls', {controls: controls});
 				_.each(controlList, function(control) { oldControls[control] = controls[control]; });
 			}
@@ -312,6 +333,10 @@ var faceraceClient = (function() {
 			if (data) {
 				emit('setFace', {image: data});
 			}
+		};
+
+		var showMessage = function(message) {
+			fire('message', message);
 		};
 
 		var listeners = {},

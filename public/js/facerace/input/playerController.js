@@ -1,24 +1,26 @@
 angular.module('facerace')
 .directive('playerController', function() {
 	return {
-		link: function($scope, element, attribute) {
+		require: '^facerace',
+		link: function($scope, element, attribute, facerace) {
 			var controls = $scope.controls;
+			console.log('playercontroller', facerace, controls);
 
 			var keymap = {
 				// tab
-				9 : function(b) { $scope.infoVisible = b && !$scope.infoVisible || !b && $scope.infoVisible; $scope.controlsChanged(); },
+				9 : function(b) { $scope.infoVisible = b && !$scope.infoVisible || !b && $scope.infoVisible; },
 				// space
-				32: function(b) { controls.space= b; $scope.controlsChanged(); },
+				32: function(b) { controls.space= b; },
 				// left arrow
-				37: function(b) { controls.left = b; setTurn(); $scope.controlsChanged(); },
+				37: function(b) { controls.left = b; setTurn(); },
 				// up arrow
-				38: function(b) { controls.up	= b; $scope.controlsChanged(); },
+				38: function(b) { controls.up	= b; },
 				// right arrow
-				39: function(b) { controls.right= b; setTurn(); $scope.controlsChanged(); },
+				39: function(b) { controls.right= b; setTurn(); },
 				// down arrow
-				40: function(b) { controls.down = b; $scope.controlsChanged(); },
+				40: function(b) { controls.down = b; },
 				// c
-				67: function(b) { $scope.configVisible = b && !$scope.configVisible || !b && $scope.configVisible; $scope.controlsChanged(); }
+				67: function(b) { $scope.configVisible = b && !$scope.configVisible || !b && $scope.configVisible; }
 			};
 
 			keymap[65] = keymap[37]; // a

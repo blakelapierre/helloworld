@@ -23,79 +23,79 @@
 	<script type="text/javascript" src="/game/gameClient.js"></script>
 
 	<script type="text/javascript" src="/js/facerace/app.js"></script>
-	<script type="text/javascript" src="/js/facerace/client.js"></script>
+	<script type="text/javascript" src="/js/facerace/facerace.js"></script>
 	<script type="text/javascript" src="/js/facerace/debug.js"></script>
 	<script type="text/javascript" src="/js/facerace/scene/scene.js"></script>
 	<script type="text/javascript" src="/js/facerace/scene/camera.js"></script>
 	<script type="text/javascript" src="/js/facerace/input/playerController.js"></script>
-	<script type="text/javascript" src="/js/facerace/hub/orientationMetrics.js"></script>
-	<script type="text/javascript" src="/js/facerace/hub/vehicleInstrumentation.js"></script>
+	<script type="text/javascript" src="/js/facerace/hud/orientationMetrics.js"></script>
+	<script type="text/javascript" src="/js/facerace/hud/vehicleInstrumentation.js"></script>
+	<script type="text/javascript" src="/js/facerace/hud/messageArea.js"></script>
 
 	
 	<link rel="stylesheet" href="/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="/css/jsoneditor-min.css" />
 	<link rel="stylesheet" href="/css/facerace.css" />
 </head>
-<body ng-controller="ClientCtrl">
+<body>
 	
-	<div class="info" ng-show="infoVisible">
-		<div orientation-metrics class="orientation">
-			<canvas class="alpha" width="300" height="50"></canvas>
-			<canvas class="beta" width="300" height="50"></canvas>
-			<canvas class="gamma" width="300" height="50"></canvas>
-		</div>
-		<div class="scoreboard">
-			<table>
-				<thead>
-					<tr>
-						<td>Name</td>
-						<td>Ping</td>
-					</tr>
-				</thead>
-				<tr class="player-score" ng-repeat="player in faceraceClient.world.players">
-					<td>{{player.name}}</td>
-					<td>{{player.latency}}</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+	<facerace class="facerace">
 
-	<!-- <div vehicle-instrumentation target="debugObject.playerMetrics" class="vehicle-instrumentation">
-		<canvas ng-repeat="metric in metrics" ng-init="canvasCreated(metric)" class="{{metric}}" width="300" height="50"></canvas>
-	</div> -->
-	
-	
-
-	<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
-		<div object-editor object="debugObject"></div>
-		<!-- <editobject object="debugObject"></editobject> -->
-
-		<!-- <div ng-repeat="(key, value) in debugObject.config.camera">
-			<label>{{key}}</label>
-			<input type="range" step="1" ng-model="config.camera[key]" /> {{value}}
+		<div class="info" ng-show="infoVisible">
+			<!-- <div class="mask"></div> -->
+			<div orientation-metrics class="orientation">
+				<canvas class="alpha" width="300" height="50"></canvas>
+				<canvas class="beta" width="300" height="50"></canvas>
+				<canvas class="gamma" width="300" height="50"></canvas>
+			</div>
+			<div class="scoreboard">
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="text-center">Face</th>
+							<th class="text-center">Name</th>
+							<th class="text-center">Ping</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="player-score" ng-repeat="player in faceraceClient.world.players">
+							<td class="text-center"><img src="{{player.face}}" /></td>
+							<td class="text-center">{{player.name}}</td>
+							<td class="text-center">{{player.latency}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
-		<div ng-repeat="(key, value) in debugObject.playerMetrics">
-			<label>{{key}}</label>
-			<span>{{value}}</span>
+
+		<!-- <div vehicle-instrumentation target="debugObject.playerMetrics" class="vehicle-instrumentation">
+			<canvas ng-repeat="metric in metrics" ng-init="canvasCreated(metric)" class="{{metric}}" width="300" height="50"></canvas>
 		</div> -->
-	</div>
-	
-	<camera show-camera="showCamera" face-data="faceData"></camera>
-	
-	<div scene ng-class="{'show-config': configVisible}" class="client" player-controller>
-		<div class="dashboard">
-			<span class="glyphicon glyphicon-arrow-down" ng-show="controls.down"></span>
-			<span class="glyphicon glyphicon-arrow-up" ng-show="controls.up"></span>
-			<span class="glyphicon glyphicon-arrow-left" ng-show="controls.left"></span>
-			<span class="glyphicon glyphicon-arrow-right" ng-show="controls.right"></span>
+		
+		<camera show-camera="showCamera" face-data="faceData"></camera>
+		
+		<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
+			<div object-editor object="debugObject"></div>
 		</div>
 
-		<div id="accelerator" class="accelerator" ng-click="accelerate()"></div>
-		<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
-		<div id="brake" class="brake" ng-click="brake()"></div>
-	</div>
+		<div scene ng-class="{'show-config': configVisible}" class="client" player-controller>
+			<div class="dashboard">
+				<span class="glyphicon glyphicon-arrow-down" ng-show="controls.down"></span>
+				<span class="glyphicon glyphicon-arrow-up" ng-show="controls.up"></span>
+				<span class="glyphicon glyphicon-arrow-left" ng-show="controls.left"></span>
+				<span class="glyphicon glyphicon-arrow-right" ng-show="controls.right"></span>
+			</div>
+
+			<message-area />
+
+			<div id="accelerator" class="accelerator" ng-click="accelerate()"></div>
+			<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
+			<div id="brake" class="brake" ng-click="brake()"></div>
+		</div>
+	</facerace>
 
 
+<!-- Shaders -->
 	<script id="plane-vertex-shader" type="x-shader/x-vertex">
 		varying vec2 vUv;
 
@@ -162,7 +162,7 @@
 		  vec2 texSize = vec2(width, height);
 		  vec2 tc = uv * texSize;
 		  tc -= center;
-		  float dist = length(tc);
+		  float dist = length(tc) * 2.0 * sin(time / 10.0);
 		  if (dist < radius) 
 		  {
 		    float percent = (radius - dist) / radius;

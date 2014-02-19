@@ -32,9 +32,12 @@ exports.startServer = function(config, callback) {
 	        socket.player = player = simulator.addPlayer(data.name, data.image);
 	        simulator.runWorldToNow();
 	        sendWorld('welcome');
+	        socket.broadcast.emit('newPlayer', {player: player});
+	        socket.sendWorld = sendWorld;
 	    });
 
 	    socket.on('controls', function(data) {
+	    	console.log('setting controls', socket.player.id, data.controls);
 	    	simulator.setPlayerControls(socket.player, data.controls);
 	    	socket.broadcast.emit('controls', {id: socket.player.id, controls: data.controls});
 	    });
@@ -70,11 +73,12 @@ exports.startServer = function(config, callback) {
 	        socket.emit(name || 'world', {
 	            socketID: socket.id,
 	            world: world,
-	            playerID: socket.player ? socket.player.id : null
+	            playerID: socket.player ? socket.player.id : null,
+	            currentTime: new Date().getTime()
 	        });
 	    };
 
-	    socket.sendWorld = sendWorld;
+	    socket.sendWorld = function() {};
 	});
 
 	var start = null;
@@ -82,7 +86,12 @@ exports.startServer = function(config, callback) {
 	    if (start == null) start = new Date().getTime();
 	    simulator.runWorldToNow();
 
-	    for (var i = 0; i < clients.length; i++) clients[i].sendWorld();
+	    if (world.step % 20 == 0) {
+		    for (var i = 0; i < clients.length; i++) {
+		    	var client = clients[i];
+		    	client.sendWorld();
+		    }
+		}
 
 	    if (world.step % 100 == 0) {
 	        var now = new Date().getTime();

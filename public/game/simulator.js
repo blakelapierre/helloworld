@@ -55,8 +55,7 @@ var faceraceSimulator = (function() {
 						right: false,
 						down: false,
 						space: false,
-						orientation: [0, 0, 0],
-						calibration: [0, 0, 0]
+						orientation: [0, 0, 0]
 					},
 					vehicle: {
 						speed: 6,
@@ -116,10 +115,6 @@ var faceraceSimulator = (function() {
 	            	vec3.set(velocity, 0, 0, 0);
 	            	speed = 0;
 	            }
-
-
-	            
-	            vec3.sub(orientation, controls.orientation, controls.calibration);
 
 	            turnSpeed = player.vehicle.turnSpeed;
 

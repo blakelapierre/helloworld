@@ -5,34 +5,44 @@ if (typeof require === 'function' || window.require) {
 
 var faceraceSimulator = (function() {
 	return function(stepSize) {
-		var dt = stepSize / 1000;
-		var nextPlayerID = 0;
-		var simulator = {
-				world: {
-					step: 0,
-					start: new Date().getTime(),
-					course: {
-						image: '/images/course.png',
-						size: [2400, 2400],
-						startPosition: [10, 500, 11],
-						stars: []
-					},
-					playerMap: {},
-					players: [],
-					friction: 0.01
-				}
-			},
-			world = simulator.world,
-			players = world.players,
-			worldBuffer = [],
-			worldBufferSize = 100;
+		var dt = stepSize / 1000,
+			nextWorldID = 0,
+			nextPlayerID = 0;
 
-		for (var i = 0; i < 50; i++) {
-			world.course.stars.push({
-				position: [400, 500 + (20 * i), 30],
-				orientation: [-90, 0, 0]
-			});
-		}
+		var getCourse = function(id) {
+			var course = {
+				image: '/images/course.png',
+				size: [2400, 2400],
+				startPosition: [10, 500, 11],
+				stars: []
+			};
+
+			for (var i = 0; i < 50; i++) {
+				course.stars.push({
+					position: [400, 500 + (20 * i), 30],
+					orientation: [-90, 0, 0]
+				});
+			}
+
+			return course;
+		};
+
+		var createWorld = function() {
+			return {
+				id: nextWorldID++,
+				step: 0,
+				start: new Date().getTime(),
+				course: getCourse(1),
+				playerMap: {},
+				players: [],
+				friction: 0.01
+			};
+		};
+
+		var world = createWorld(),
+			players = world.players,
+			playerMap = world.playerMap;
+
 
 		var updatePlayer = (function() {
 			var acceleration = vec3.create(),
@@ -47,7 +57,7 @@ var faceraceSimulator = (function() {
 				direction = 0,
 				stepTurn = 0;
 
-			return function(step, player, index) {
+			return function(step, player) {
 				var controls = player.controls,
 					last = player.lastControlsUpdate;
 					vehicleAcceleration = player.vehicle.speed,
@@ -55,8 +65,7 @@ var faceraceSimulator = (function() {
 					turnSpeed = player.vehicle.turnSpeed;
 
 				// we have new controls, re-calc from last control update
-				if (controls.step > last.step) {
-					console.log(controls.step, last.step);
+				if (controls.step > last.step + 1) {
 					resetPlayer(player);
 				}
 
@@ -66,13 +75,13 @@ var faceraceSimulator = (function() {
 
 				// calculate current (world.step) position, velocity, acceleration, etc.
 				while (player.step < step) {
+					player.step++;
+
 					stepTurn = 0;
 					turn = controls.turn * Math.PI / 180;
 					direction = player.direction;
 					vec3.copy(velocity, player.velocity);
-					vec3.set(acceleration, 0, 0, 0);
-					
-					player.step++;
+					vec3.set(acceleration, 0, 0, 0);					
 
 					speed = vec3.length(velocity);
 
@@ -86,7 +95,6 @@ var faceraceSimulator = (function() {
 
 					var acc = 0;
 					if (controls.space) acc += boostAcceleration;
-
 					if (controls.up) acc += vehicleAcceleration;
 					if (controls.down) acc = -vehicleAcceleration;
 					
@@ -120,13 +128,11 @@ var faceraceSimulator = (function() {
 					}
 
 					vec3.scale(stepVelocity, velocity, dt);
+
 					vec3.add(player.position, player.position, stepVelocity);
 
 					if (speed > 0) vec3.normalize(previousDirection, player.velocity);
 					else previousDirection = directionVector;
-
-					vec3.sub(player.laststepTurn, directionVector, previousDirection);
-					vec3.set(player.laststepTurn, Math.sin(stepTurn), Math.cos(stepTurn), 0);
 
 					vec3.copy(player.directionVector, directionVector);
 					vec3.copy(player.acceleration, acceleration);
@@ -143,7 +149,6 @@ var faceraceSimulator = (function() {
 		})();
 
 		var resetPlayer = function(player) {
-			console.log('resetting', player.id);
 			var last = player.lastControlsUpdate;
 			
 			player.step = last.step;
@@ -157,10 +162,10 @@ var faceraceSimulator = (function() {
 			player.direction = last.direction;
 		}
 
-		var updateLastControls = function(player, step) {
+		var updateLastControls = function(player) {
 			var last = player.lastControlsUpdate;
 
-			last.step = step;
+			last.step = player.step;
 			vec3.copy(last.acceleration, player.acceleration);
 			vec3.copy(last.velocity, player.velocity);
 			vec3.copy(last.position, player.position);
@@ -168,6 +173,8 @@ var faceraceSimulator = (function() {
 			vec3.copy(last.directionVector, player.directionVector);
 
 			last.direction = player.direction;
+
+			_.extend(last.controls, player.controls);
 		};
 
 		var addPlayer = function() {
@@ -185,14 +192,13 @@ var faceraceSimulator = (function() {
 					acceleration: [0, 0, 0],
 					direction: 0,
 					directionVector: [0, 1, 0],
-					laststepTurn: [0, 0, 0],
 					controls: {
+						step: 0,
 						left: false,
 						up: false,
 						right: false,
 						down: false,
-						space: false,
-						stepTurn: 0
+						space: false
 					},
 					vehicle: {
 						speed: 200,
@@ -205,16 +211,25 @@ var faceraceSimulator = (function() {
 					latency: 0,
 					lastControlsUpdate: {
 						step: 0,
-						acceleration: vec3.create(),
-						velocity: vec3.create(),
-						position: vec3.create(),
-						orientation: vec3.create(),
+						acceleration: vec3.create(0, 0, 0),
+						velocity: vec3.create(0, 0, 0),
+						position: vec3.create(0, 0, 0),
+						orientation: vec3.create(0, 0, 0),
 						direction: 0,
-						directionVector: vec3.create()
+						directionVector: vec3.create(0, 0, 0),
+						controls: {
+							step: 0,
+							left: false,
+							up: false,
+							right: false,
+							down: false,
+							space: false,
+							turn: 0
+						}
 					}
 				};
 
-				updateLastControls(player, 0);
+				updateLastControls(player);
 			}
 
 			player.id = nextPlayerID++;
@@ -222,6 +237,13 @@ var faceraceSimulator = (function() {
 			world.players.push(player);
 
 			return player;
+		};
+
+		var insertPlayer = function(player) {
+			nextPlayerID = player.id + 1;
+
+			world.playerMap[player.id] = world.players.length;
+			world.players.push(player);
 		};
 
 		var removePlayer = function(player) {
@@ -277,45 +299,18 @@ var faceraceSimulator = (function() {
 			for (var i = 0; i < steps; i++) stepWorld(world);
 		};
 
-	   
-		var getNextWorld = function(oldWorld) {
-			var step = oldWorld.step + 1,
-				index = step % 100,
-				world = worldBuffer[index];
-				
-
-			if (typeof world === 'undefined') {
-				var cloneWorld = function(w) {
-					if (w == null) return null;
-					if (_.isObject(w)) {
-						var c = {};
-						for (var key in w) {
-							c[key] = cloneWorld(w[key]);
-						}
-						return c;
-					}
-					if (_.isArray(w)) return _.map(w, cloneWorld);
-					return w;
-				};
-				world = cloneWorld(oldWorld);
-				worldBuffer[index] = world;
-			}
-
-			world.step = step;
-
-			return world;
-		};
-
-		return _.extend(simulator, {
+		return {
 			world: world,
 			addPlayer: addPlayer,
+			insertPlayer: insertPlayer,
 			removePlayer: removePlayer,
 			getPlayer: getPlayer,
 			setPlayerControls: setPlayerControls,
 			setPlayerControlsAtStep: setPlayerControlsAtStep,
 			startSimulation: startSimulation,
-			runWorldToNow: runWorldToNow
-		});
+			runWorldToNow: runWorldToNow,
+			updateLastControls: updateLastControls
+		};
 	};
 })();
 

@@ -1,11 +1,9 @@
-// if (typeof require === 'function' || window.require) {
-// 	_ = require('underscore');
-// 	vec3 = require('../js/lib/gl-matrix-min.js').vec3;
-// };
 
 var facerace = facerace || {};
 facerace.Player = function(world) {
-	var nextPlayerID = 0;
+	var getNextPlayerID = function() {
+		return world.info.nextPlayerID++;
+	};
 
 	var addPlayer = function() {
 		var player = arguments[0];
@@ -62,7 +60,7 @@ facerace.Player = function(world) {
 			updateLastControls(player);
 		}
 
-		player.id = nextPlayerID++;
+		player.id = getNextPlayerID();
 		world.playerMap[player.id] = world.players.length;
 		world.players.push(player);
 

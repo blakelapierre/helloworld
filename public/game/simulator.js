@@ -3,6 +3,7 @@ if (typeof require === 'function' || window.require) {
 	_ = require('underscore');
 	vec3 = require('../js/lib/gl-matrix-min.js').vec3;
 	facerace.Player = require('../game/player.js').Player;
+	facerace.World = require('../game/world.js').World;
 };
 
 var faceraceSimulator = (function() {
@@ -10,40 +11,17 @@ var faceraceSimulator = (function() {
 		var dt = stepSize / 1000,
 			nextWorldID = 0;
 
-		var getCourse = function(id) {
-			var course = {
-				image: '/images/course.png',
-				size: [2400, 2400],
-				startPosition: [10, 500, 11],
-				stars: []
-			};
-
-			for (var i = 0; i < 50; i++) {
-				course.stars.push({
-					position: [400, 500 + (20 * i), 30],
-					orientation: [-90, 0, 0]
-				});
-			}
-
-			return course;
+		var simulator = {
+			nextWorldID: 0,
+			stepSize: stepSize,
+			dt: dt
 		};
 
-		var createWorld = function() {
-			return {
-				id: nextWorldID++,
-				step: 0,
-				stepSize: stepSize,
-				dt: dt,
-				start: new Date().getTime(),
-				course: getCourse(1),
-				playerMap: {},
-				players: [],
-				friction: 0.01
-			};
-		};
-
-		var world = createWorld(),
-			Player = facerace.Player(world),
+		var World = facerace.World(simulator);
+			w = World.createWorld(),
+			worldControls = w.controls,
+			world = w.data,
+			
 			players = world.players,
 			playerMap = world.playerMap;
 		
@@ -59,11 +37,6 @@ var faceraceSimulator = (function() {
 			return world.players[world.playerMap[id]];
 		};
 
-		var processStep = function() {
-			_.each(players, processPlayerStep);
-			world.step++;
-		};
-
 		var setPlayerControls = function(player, controls) {
 			var now = now || new Date().getTime(),
 				currentStep = currentStep || Math.floor((now - world.start) / stepSize);
@@ -75,41 +48,24 @@ var faceraceSimulator = (function() {
 			_.extend(player.controls, controls, {step: step});
 		};
 
-		var startSimulation = function() {
-			world.step = 0;
-			world.start = new Date().getTime();
-
-			var startPosition = world.course.startPosition;
-			_.each(world.players, function(player) {
-				vec3.copy(player.position, startPosition);
-			});
-		};
-
-		var stepWorld = function() {
-			world.step++;
-			for (var i = 0; i < world.players.length; i++) {
-				Player.updatePlayer(world.step, world.players[i], i);
-			}
-		};
 
 		var runWorldToNow = function() {
 			var now = now || new Date().getTime(),
 				currentStep = currentStep || Math.floor((now - world.start) / stepSize),
 				steps = currentStep - world.step;
 
-			for (var i = 0; i < steps; i++) stepWorld(world);
+			for (var i = 0; i < steps; i++) worldControls.stepWorld();
 		};
 
 		return {
 			world: world,
-			addPlayer: Player.addPlayer,
+			addPlayer: worldControls.addPlayer,
 			removePlayer: removePlayer,
 			getPlayer: getPlayer,
 			setPlayerControls: setPlayerControls,
 			setPlayerControlsAtStep: setPlayerControlsAtStep,
-			startSimulation: startSimulation,
 			runWorldToNow: runWorldToNow,
-			updateLastControls: Player.updateLastControls
+			updateLastControls: worldControls.updateLastControls
 		};
 	};
 })();

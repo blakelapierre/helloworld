@@ -127,7 +127,7 @@ var faceraceClient = (function() {
 
 		socket.on('newPlayer', function(data) {
 			console.log('newplayer', data);
-			simulator.insertPlayer(data.player);
+			simulator.addPlayer(data.player);
 			showMessage(data.player.name + ' Joined the Race!');
 		});
 

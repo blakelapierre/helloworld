@@ -28,6 +28,7 @@ facerace.Player = function(world) {
 					down: false,
 					space: false
 				},
+				controlsHistory: {'0':{turn: 0}},
 				vehicle: {
 					speed: 200,
 					boostSpeed: 250,
@@ -69,6 +70,7 @@ facerace.Player = function(world) {
 
 	var dt = world.dt,
 		stepSize = world.stepSize;
+
 	var updatePlayer = (function() {
 		var acceleration = vec3.create(),
 			stepAcceleration = vec3.create(),
@@ -91,7 +93,7 @@ facerace.Player = function(world) {
 
 			// we have new controls, re-calc from last control update
 			if (controls.step > last.step + 1) {
-				resetPlayer(player);
+				//resetPlayer(player);
 			}
 
 			if (step - last.step > (1000 / stepSize)) {
@@ -102,9 +104,12 @@ facerace.Player = function(world) {
 			while (player.step < step) {
 				player.step++;
 
+				controls = getCurrentControls(player);
+
 				stepTurn = 0;
 				turn = controls.turn * Math.PI / 180;
 				direction = player.direction;
+				
 				vec3.copy(velocity, player.velocity);
 				vec3.set(acceleration, 0, 0, 0);					
 
@@ -168,10 +173,24 @@ facerace.Player = function(world) {
 
 				player.orientation[1] = player.direction / Math.PI * 180;
 
-				if (player.step == controls.step) updateLastControls(player);
+				//if (player.step == controls.step) updateLastControls(player);
 			}
 		};
 	})();
+
+	var getCurrentControls = function(player) {
+		var step = player.step,
+			controls = player.controlsHistory[step];
+
+		if (controls == null) {
+			controls = player.controlsHistory[step - 1];
+			player.controlsHistory[step] = controls;
+		}
+
+		if (step > 0) delete player.controlsHistory[step - 1];
+
+		return controls;
+	};
 
 	var updateLastControls = function(player) {
 		var last = player.lastControlsUpdate;
@@ -202,9 +221,27 @@ facerace.Player = function(world) {
 		player.direction = last.direction;
 	};
 
+	var setPlayerControls = function(player, controls) {
+		var now = now || new Date().getTime(),
+			currentStep = currentStep || Math.floor((now - world.start) / stepSize);
+
+		setPlayerControlsAtStep(player, controls, currentStep);
+	};
+
+	var setControlsAtStep = function(player, controls, step) {
+		player.controlsHistory[step] = _.clone(controls);
+	};
+
+	var getPlayer = function(id) {
+		var index = world.playerMap[id];
+		return world.players[index];
+	};
+
 	return {
+		getPlayer: getPlayer,
 		addPlayer: addPlayer,
 		updatePlayer: updatePlayer,
+		setControlsAtStep: setControlsAtStep,
 		updateLastControls: updateLastControls
 	};
 };

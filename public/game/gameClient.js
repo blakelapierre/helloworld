@@ -83,6 +83,8 @@ var faceraceClient = (function() {
 			if (--measurements == 0) return;
 		};
 
+		var metrics = {latency: 0};
+
 		emit('joinGame', {name: 'blake', image: '/images/faces/blake.png'});
 
 		socket.on('welcome', function(data) {
@@ -105,7 +107,9 @@ var faceraceClient = (function() {
 			player = simulator.getPlayer(playerID);
 			playerIndex = sourceWorld.playerMap[data.playerID];
 			
-			fire('playerMetrics', player);
+			metrics.player = player;
+			metrics.world = world;
+			fire('metrics', metrics);
 
 			player.controls = controls;
 
@@ -132,12 +136,12 @@ var faceraceClient = (function() {
 		});
 
 		socket.on('controls', function(data) {
-			var player = simulator.getPlayer(data.id);
-			simulator.setPlayerControlsAtStep(player, data.controls, data.controls.step);			
+			simulator.setPlayerControlsAtStep(data.id, data.controls, data.controls.step);			
 		});
 
 		var pingStart = 0;
 			pong = function() {};
+
 		socket.on('ping', function() {
 			emit('pong', {time: new Date().getTime()});
 		});
@@ -146,6 +150,8 @@ var faceraceClient = (function() {
 			var now = new Date().getTime(),
 				latency = now - pingStart,
 				difference = now - data.time - latency;
+
+			metrics.latency = latency;
 
 			pong(latency);
 			setTimeout(ping, 1000);
@@ -191,10 +197,9 @@ var faceraceClient = (function() {
 		var step = function(timestamp) {
 			var world = simulator.world,
 				simulatorPlayers = world.players,
-				stars = world.stars,
-				player = simulator.getPlayer(playerID);
+				stars = world.stars;
 			
-			simulator.setPlayerControls(player, controls);
+			simulator.setPlayerControls(playerID, controls);
 			sendControls();
 
 			simulator.runWorldToNow();

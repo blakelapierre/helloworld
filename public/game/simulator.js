@@ -24,30 +24,17 @@ var faceraceSimulator = (function() {
 			
 			players = world.players,
 			playerMap = world.playerMap;
-		
-
-		var removePlayer = function(player) {
-			var id = player.id,
-				index = world.playerMap[id];
-			world.players.splice(index, 1);
-			delete world.playerMap[id];
-		};
 
 		var getPlayer = function(id) {
 			return world.players[world.playerMap[id]];
 		};
 
-		var setPlayerControls = function(player, controls) {
+		var setPlayerControls = function(id, controls) {
 			var now = now || new Date().getTime(),
 				currentStep = currentStep || Math.floor((now - world.start) / stepSize);
 
-			setPlayerControlsAtStep(player, controls, currentStep);
+			worldControls.setPlayerControlsAtStep(id, controls, currentStep);
 		};
-
-		var setPlayerControlsAtStep = function(player, controls, step) {
-			_.extend(player.controls, controls, {step: step});
-		};
-
 
 		var runWorldToNow = function() {
 			var now = now || new Date().getTime(),
@@ -60,10 +47,10 @@ var faceraceSimulator = (function() {
 		return {
 			world: world,
 			addPlayer: worldControls.addPlayer,
-			removePlayer: removePlayer,
+			removePlayer: worldControls.removePlayer,
 			getPlayer: getPlayer,
 			setPlayerControls: setPlayerControls,
-			setPlayerControlsAtStep: setPlayerControlsAtStep,
+			setPlayerControlsAtStep: worldControls.setPlayerControlsAtStep,
 			runWorldToNow: runWorldToNow,
 			updateLastControls: worldControls.updateLastControls
 		};

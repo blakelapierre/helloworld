@@ -70,6 +70,15 @@
 	height: 100%;
 }
 
+.overlay {
+	position: absolute;
+	top: 0%;
+	right: 0%;
+
+	text-align: right;
+	color: #fff;
+}
+
 .dashboard {
 	position: absolute;
 	bottom: 0px;

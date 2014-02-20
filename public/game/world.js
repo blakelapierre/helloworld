@@ -51,12 +51,27 @@ facerace.World = function(simulator) {
 			_.each(world.players, function(player, i) { Player.updatePlayer(world.step, player, i); });
 		};
 
+		var removePlayer = function(id) {
+			var index = world.playerMap[id];
+			if (index != null) {
+				world.players.splice(index, 1);
+				delete world.playerMap[id];
+			}
+		};
+
+		var setPlayerControlsAtStep = function(id, controls, step) {
+			var player = Player.getPlayer(id);
+			Player.setControlsAtStep(player, controls, step);
+		};
+
 		return {
 			data: world,
 			controls: {
 				addPlayer: Player.addPlayer,
+				removePlayer: removePlayer,
 				updateLastControls: Player.updateLastControls,
-				stepWorld: stepWorld
+				stepWorld: stepWorld,
+				setPlayerControlsAtStep: setPlayerControlsAtStep
 			}
 		};
 	};

@@ -88,11 +88,14 @@
 				<span class="glyphicon glyphicon-arrow-right" ng-show="controls.right"></span>
 			</div>
 
-			<message-area />
+			<message-area></message-area>
 
 			<div id="accelerator" class="accelerator" ng-click="accelerate()"></div>
 			<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
 			<div id="brake" class="brake" ng-click="brake()"></div>
+		</div>
+		<div class="overlay">
+			<span>{{metrics.latency}} ms</span>
 		</div>
 	</facerace>
 

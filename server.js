@@ -37,8 +37,7 @@ exports.startServer = function(config, callback) {
 	    });
 
 	    socket.on('controls', function(data) {
-	    	console.log('setting controls', socket.player.id, data.controls);
-	    	simulator.setPlayerControls(socket.player, data.controls);
+	    	simulator.setPlayerControls(socket.player.id, data.controls);
 	    	socket.broadcast.emit('controls', {id: socket.player.id, controls: data.controls});
 	    });
 
@@ -55,7 +54,11 @@ exports.startServer = function(config, callback) {
 	    socket.on('disconnect', function() {
 	        clients.splice(clients.indexOf(socket), 1);
 
-	        if (socket.player) simulator.removePlayer(socket.player);
+	        if (socket.player) {
+	        	console.log('removed', socket.player.name);
+	        	simulator.removePlayer(socket.player.id);
+	        	delete socket.player;
+	        }
 	        
 	        delete io.sockets.socket[socket.id];
 	    });

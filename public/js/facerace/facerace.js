@@ -10,15 +10,14 @@ angular.module('facerace')
 			
 			this.setClient = function(client) {
 				$scope.faceraceClient = client;
-
-				client.on('playerMetrics', function(metrics) {
-					$scope.playerMetrics = metrics;
+				$scope.metrics = {latency: 0};
+				
+				client.on('metrics', function(metrics) {
+					$scope.metrics = metrics;
 					$scope.debugObject = {
-						playerMetrics: $scope.playerMetrics,
+						metrics: $scope.metrics,
 						config: $scope.config
 					};
-
-					$scope.debugObject = client.world;
 
 					$scope.$apply();
 				});

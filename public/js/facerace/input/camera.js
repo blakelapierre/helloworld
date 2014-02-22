@@ -1,5 +1,5 @@
 angular.module('facerace')
-.directive('camera', function($sce) {
+.directive('camera', function($sce, userMediaService) {
 	return {
 		template: 
 			'<div class="camera" ng-show="showCamera">' +
@@ -70,7 +70,11 @@ angular.module('facerace')
 
 			$scope.done = function() {
 				$scope.faceData = finalCanvas.toDataURL('image/png');
-				if ($scope.currentStream) $scope.currentStream.stop(); // please clean this up!
+				if ($scope.currentStream) {
+					$scope.currentStream.stop(); // please clean this up!
+					$scope.currentStream = null;
+					$scope.currentStreamUrl = null;
+				}
 			};
 
 			$scope.drag = function(e) {
@@ -132,17 +136,8 @@ angular.module('facerace')
 			};
 
 			var loadSources = function() {
-				MediaStreamTrack.getSources(function(sources) {
-					var videoSources = 
-						_.where(sources, {kind: 'video'})
-						 .map(function(source, index) {
-						 	return {
-						 		id: source.id,
-						 		label: source.label,
-						 		facing: source.facing,
-						 		name: source.label || source.facing || 'Camera #' + (index + 1)
-						 	};
-						});
+				userMediaService.getVideoSources(function(sources) {
+					var videoSources = sources;
 
 					if ($scope.currentSource == null && videoSources.length > 0) {
 						$scope.currentSource = videoSources[0];
@@ -152,19 +147,23 @@ angular.module('facerace')
 					$scope.$apply();
 				});
 			};
-			loadSources();
+
+			$scope.$watch('showCamera', function(value) {
+				if (value) loadSources();
+			});
 
 			$scope.$watch('currentSource', function(source) {
 				if ($scope.currentStream) {
 					$scope.currentStream.stop();
 				}
+
 				$scope.currentStream = null;
 				$scope.currentStreamUrl = null;
 				$scope.hasPhoto = false;
 
 				if (source == null || source.id == null) return;
 
-				navigator.webkitGetUserMedia({video: {optional: [{sourceId: source.id}]}}, function(stream) {
+				userMediaService.getVideoStream(source.id, function(stream) {
 					$scope.currentStream = stream;
 					$scope.currentStreamUrl = $sce.trustAsResourceUrl(window.URL.createObjectURL(stream));
 					$scope.$apply();

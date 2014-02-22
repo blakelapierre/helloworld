@@ -7,38 +7,35 @@ if (typeof require === 'function' || window.require) {
 };
 
 var faceraceSimulator = (function() {
-	return function(stepSize) {
+	return function(stepSize, options) {
+		options = options || {};
+
 		var dt = stepSize / 1000,
 			nextWorldID = 0;
 
 		var simulator = {
 			nextWorldID: 0,
 			stepSize: stepSize,
-			dt: dt
+			dt: dt,
+			isClient: !!options.isClient
 		};
 
 		var World = facerace.World(simulator);
 			w = World.createWorld(),
 			worldControls = w.controls,
 			world = w.data,
-			
-			players = world.players,
-			playerMap = world.playerMap;
-
-		var getPlayer = function(id) {
-			return world.players[world.playerMap[id]];
-		};
+			adminControls = w.admin;
 
 		var setPlayerControls = function(id, controls) {
-			var now = now || new Date().getTime(),
-				currentStep = currentStep || Math.floor((now - world.start) / stepSize);
+			var now = new Date().getTime(),
+				currentStep = Math.floor((now - world.start) / stepSize);
 
 			worldControls.setPlayerControlsAtStep(id, controls, currentStep);
 		};
 
 		var runWorldToNow = function() {
-			var now = now || new Date().getTime(),
-				currentStep = currentStep || Math.floor((now - world.start) / stepSize),
+			var now = new Date().getTime(),
+				currentStep = Math.floor((now - world.start) / stepSize),
 				steps = currentStep - world.step;
 
 			for (var i = 0; i < steps; i++) worldControls.stepWorld();
@@ -46,9 +43,11 @@ var faceraceSimulator = (function() {
 
 		return {
 			world: world,
+			worldControls: worldControls,
+			adminControls: adminControls,
 			addPlayer: worldControls.addPlayer,
 			removePlayer: worldControls.removePlayer,
-			getPlayer: getPlayer,
+			getPlayer: worldControls.getPlayer,
 			setPlayerControls: setPlayerControls,
 			setPlayerControlsAtStep: worldControls.setPlayerControlsAtStep,
 			runWorldToNow: runWorldToNow,

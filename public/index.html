@@ -15,6 +15,7 @@
 	<script type="text/javascript" src="/js/lib/ShaderParticles.min.js"></script>
 	<script type="text/javascript" src="/js/lib/gestures.js"></script>
 	<script type="text/javascript" src="/js/lib/smoothie.1.19.js"></script>
+	<script type="text/javascript" src="/js/lib/recorder.js"></script>
 
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 
@@ -28,8 +29,10 @@
 	<script type="text/javascript" src="/js/facerace/facerace.js"></script>
 	<script type="text/javascript" src="/js/facerace/debug.js"></script>
 	<script type="text/javascript" src="/js/facerace/scene/scene.js"></script>
-	<script type="text/javascript" src="/js/facerace/scene/camera.js"></script>
+	<script type="text/javascript" src="/js/facerace/input/camera.js"></script>
+	<script type="text/javascript" src="/js/facerace/input/microphone.js"></script>
 	<script type="text/javascript" src="/js/facerace/input/playerController.js"></script>
+	<script type="text/javascript" src="/js/facerace/input/userMediaService.js"></script>
 	<script type="text/javascript" src="/js/facerace/hud/orientationMetrics.js"></script>
 	<script type="text/javascript" src="/js/facerace/hud/vehicleInstrumentation.js"></script>
 	<script type="text/javascript" src="/js/facerace/hud/messageArea.js"></script>
@@ -75,6 +78,8 @@
 		</div> -->
 		
 		<camera show-camera="showCamera" face-data="faceData"></camera>
+
+		<microphone show-microphone="showMicrophone"></microphone>
 		
 		<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
 			<div object-editor object="debugObject"></div>
@@ -167,7 +172,7 @@
 		  vec2 texSize = vec2(width, height);
 		  vec2 tc = uv * texSize;
 		  tc -= center;
-		  float dist = length(tc) * 2.0 * sin(time / 10.0);
+		  float dist = length(tc) * 1.5 * sin(time / 70.0);
 		  if (dist < radius) 
 		  {
 		    float percent = (radius - dist) / radius;

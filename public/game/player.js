@@ -32,7 +32,7 @@ facerace.Player = function(world) {
 				vehicle: {
 					speed: 200,
 					boostSpeed: 250,
-					turnSpeed: Math.PI / 4
+					turnSpeed: Math.PI
 				},
 				face: image,
 				scale: 4,
@@ -105,9 +105,10 @@ facerace.Player = function(world) {
 				player.step++;
 
 				controls = getCurrentControls(player);
+				vec3.copy(player.controls, controls);
 
 				stepTurn = 0;
-				turn = controls.turn * Math.PI / 180;
+				turn = controls.turn;
 				direction = player.direction;
 				
 				vec3.copy(velocity, player.velocity);

@@ -6,6 +6,8 @@ if (typeof require === 'function' || window.require) {
 };
 
 facerace.World = function(simulator) {
+	var isClient = simulator.isClient;
+
 	var getNextWorldID = function() {
 		return simulator.nextWorldID++;
 	};
@@ -32,7 +34,9 @@ facerace.World = function(simulator) {
 		var world = {
 			id: getNextWorldID(),
 			info: {
-				nextPlayerID: 0
+				nextPlayerID: 0,
+				receivedEventsForStep: 0,
+				lastReceivedEvents: 0
 			},
 			step: 0,
 			stepSize: simulator.stepSize,
@@ -44,11 +48,64 @@ facerace.World = function(simulator) {
 			friction: 0.01
 		};
 
+		var events = {};
+
 		var Player = facerace.Player(world);
 
 		var stepWorld = function() {
+			if (isClient && world.step > world.info.lastReceivedEvents) return;
+
 			world.step++;
+
+			processEvents();
+			updatePlayers();
+		};
+
+		var processEvents = function() {
+			_.each(events[world.step] || [], processEvent);
+			delete events[world.step];
+		};
+
+		var processEvent = function(e) {
+			switch (e.type) {
+				case 'controls':
+					setPlayerControlsAtStep(e.id, e.controls, world.step);
+					break;
+			}
+		};
+
+		var updatePlayers = function() {
 			_.each(world.players, function(player, i) { Player.updatePlayer(world.step, player, i); });
+		};
+
+		var addEvent = function(e, step) {
+			var queue = events[step] || [];
+			events[step] = queue;
+			queue.push(e);
+		};
+
+		var setEvents = function(step, es) {
+			var queue = events[step] = events[step] || [];
+			_.each(es, function(e) { queue.push(e); });
+			world.info.receivedEventsForStep = step;
+			world.info.lastReceivedEvents = new Date().getTime();
+		};
+
+		var getEvents = function(step) {
+			step = step || (world.step + 1);
+			return {
+				step: step,
+				events: events[step]
+			};
+		};
+
+		var getPlayer = function(id) {
+			var index = world.playerMap[id];
+			return world.players[index];
+		};
+
+		var getPlayers = function() {
+			return world.players;
 		};
 
 		var removePlayer = function(id) {
@@ -64,14 +121,38 @@ facerace.World = function(simulator) {
 			Player.setControlsAtStep(player, controls, step);
 		};
 
+		var setStateAt = function(state, step) {
+
+		};
+
+		var startRace = function() {
+			var players = world.players,
+				startPosition = world.course.startPosition;
+
+			_.each(players, function(player, i) {
+				vec3.set(player.position, startPosition[0], startPosition[1] + 10 * i, startPosition[2]);
+				vec3.set(player.acceleration, 0, 0, 0);
+				vec3.set(player.velocity, 0, 0, 0);
+			});
+		};
+
 		return {
 			data: world,
 			controls: {
 				addPlayer: Player.addPlayer,
+				getPlayer: getPlayer,
+				getPlayers: getPlayers,
 				removePlayer: removePlayer,
+				addEvent: addEvent,
+				setEvents: setEvents,
+				getEvents: getEvents,
 				updateLastControls: Player.updateLastControls,
 				stepWorld: stepWorld,
-				setPlayerControlsAtStep: setPlayerControlsAtStep
+				setPlayerControlsAtStep: setPlayerControlsAtStep,
+				setStateAt: setStateAt
+			},
+			admin: {
+				startRace: startRace
 			}
 		};
 	};

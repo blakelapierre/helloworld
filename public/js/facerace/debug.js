@@ -49,7 +49,7 @@ angular.module('faceraceDebug', [])
 				if (node.type == 'object' || node.type == 'array') {
 					for (var i = 0; i < node.childs.length; i++) {
 						var child = node.childs[i];
-						updateEditor(child, obj[child.field || child.index]);
+						updateEditor(child, obj == null ? null : obj[child.field || child.index]);
 					}
 				}
 				else {

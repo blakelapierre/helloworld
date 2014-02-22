@@ -14,7 +14,7 @@ var faceraceClient = (function() {
 	var createScene = function(element, config) {
 		var height = window.innerHeight,
 			width = window.innerWidth,
-			camera = new facerace.DriveCamera(90, width / height, 1, 5000, null, config.camera),
+			camera = new facerace.DriveCamera(60, 1.0 /*width / height*/, 1, 5000, null, config.camera),
 			scene = new THREE.Scene(),
 			renderer = new THREE.WebGLRenderer({antialias: true}),
 			stats = new Stats();
@@ -52,7 +52,7 @@ var faceraceClient = (function() {
 	};
 
 	var startGame = function(url, controls, graphics, config) {
-		var simulator = faceraceSimulator(20),
+		var simulator = faceraceSimulator(20, {isClient: true}),
 			camera = graphics.camera,
 			scene = graphics.scene,
 			renderer = graphics.renderer,
@@ -86,6 +86,18 @@ var faceraceClient = (function() {
 		var metrics = {latency: 0};
 
 		emit('joinGame', {name: 'blake', image: '/images/faces/blake.png'});
+
+		socket.on('update', function(data) {
+			simulator.worldControls.setEvents(data.step, data.events);
+
+			if (data.positions) {
+				var players = simulator.worldControls.getPlayers();
+				for (var i = 0; i < players.length; i++) {
+					vec3.copy(players[i].position, data.positions[i].position);
+					vec3.copy(players[i].direction, data.positions[i].direction);
+				}
+			}
+		});
 
 		socket.on('welcome', function(data) {
 			var sourceWorld = data.world,
@@ -135,8 +147,12 @@ var faceraceClient = (function() {
 			showMessage(data.player.name + ' Joined the Race!');
 		});
 
-		socket.on('controls', function(data) {
-			simulator.setPlayerControlsAtStep(data.id, data.controls, data.controls.step);			
+		socket.on('faceChange', function(data) {
+			console.log('facechange', data);
+				//changeTexture(pObject, simulatorPlayer.face);
+			var map = THREE.ImageUtils.loadTexture(data.face),
+				pObject = playerObjects[data.playerID];
+			pObject.material.uniforms.texture.value = map;
 		});
 
 		var pingStart = 0;
@@ -199,7 +215,8 @@ var faceraceClient = (function() {
 				simulatorPlayers = world.players,
 				stars = world.stars;
 			
-			simulator.setPlayerControls(playerID, controls);
+			//simulator.setPlayerControls(playerID, controls);
+			simulator.worldControls.addEvent({type: 'controls', id: playerID, controls: controls}, world.step + 1);
 			sendControls();
 
 			simulator.runWorldToNow();
@@ -256,9 +273,8 @@ var faceraceClient = (function() {
 				pObject.position = pObject.targetPosition;
 				pObject.position.lerp(oldPosition, 0.5);
 			}
-
 						
-			pObject.position.z = targetZ + 5 + 5 * Math.sin(simulatorPlayer.step * 20 / 1000 * 2 * Math.PI / 5);
+			//pObject.position.z = targetZ + 5 + 5 * Math.sin(simulatorPlayer.step * 20 / 1000 * 2 * Math.PI / 5);
 
 			pObject.rotation.y = -simulatorPlayer.direction;
 
@@ -274,7 +290,7 @@ var faceraceClient = (function() {
 		};
 
 		var createPlayerObject = function(simulatorPlayer) {
-			var pObject = createPlane(simulatorPlayer.face, 5, 5);
+			var pObject = createPlane(simulatorPlayer.face, 5, 5, true);
 
 			pObject.particleGroup = new SPE.Group({
 				texture: THREE.ImageUtils.loadTexture('/images/particles/smokeparticle.png'),
@@ -299,11 +315,12 @@ var faceraceClient = (function() {
 			return pObject;
 		};
 
-		var createPlane = function(imageUrl, width, height) {
+		var createPlane = function(imageUrl, width, height, swirl) {
+			swirl = swirl ? '-swirl' : '';
 			var map = THREE.ImageUtils.loadTexture(imageUrl),
 				material = new THREE.ShaderMaterial({
-					fragmentShader: document.getElementById('plane-fragment-shader-swirl').textContent,
-					vertexShader: document.getElementById('plane-vertex-shader-swirl').textContent,
+					fragmentShader: document.getElementById('plane-fragment-shader' + swirl).textContent,
+					vertexShader: document.getElementById('plane-vertex-shader' + swirl).textContent,
 					uniforms: {
 						texture: {type: 't', value: map},
 						width: {type: 'f', value: width},
@@ -313,12 +330,13 @@ var faceraceClient = (function() {
 						center: {type: 'v2', value: new THREE.Vector2(width / 2, height / 2)},
 						time: {type: 'f', value: 1.0}
 					},
-					transparent: false,
 					side: THREE.DoubleSide
-				});
+				}),
+				mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 				
 			map.anisotropy = renderer.getMaxAnisotropy();
-			return new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
+			mesh._imageUrl = imageUrl;
+			return mesh;
 		};
 
 		var controlList = ['turn', 'up', 'down', 'left', 'right', 'space'];
@@ -368,10 +386,10 @@ var faceraceClient = (function() {
 
 	var setDefaults = function(config) {
 		var camera = config.camera || {};
-		camera.trailDistance = camera.trailDistance || 100;
-		camera.heightFromGround = camera.heightFromGround || 30;
-		camera.fov = camera.fov || 80;
-		camera.offset = camera.offset || new THREE.Vector3(0, 0, 50);
+		camera.trailDistance = camera.trailDistance || 50;
+		camera.heightFromGround = camera.heightFromGround || 25;
+		camera.fov = camera.fov || 60;
+		camera.offset = camera.offset || new THREE.Vector3(0, 0, 20);
 
 		config.camera = camera;
 

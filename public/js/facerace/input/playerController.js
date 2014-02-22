@@ -30,9 +30,10 @@ angular.module('facerace')
 
 			var setTurn = function() {
 				var turn = 0;
-				if (controls.left) turn -= 60;
-				if (controls.right) turn += 60;
+				if (controls.left) turn -= Math.PI / 12;
+				if (controls.right) turn += Math.PI / 12;
 				controls.turn = turn;
+				controls.quaternion = [ 0, 0, Math.sin(turn), Math.cos(turn) ];
 			};
 
 			$(window).bind('keydown', function(event) {

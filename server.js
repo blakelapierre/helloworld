@@ -34,21 +34,24 @@ exports.startServer = function(config, callback) {
 	        sendWorld('welcome');
 	        socket.broadcast.emit('newPlayer', {player: player});
 	        socket.sendWorld = sendWorld;
+	        simulator.adminControls.startRace();
 	    });
 
 	    socket.on('controls', function(data) {
-	    	simulator.setPlayerControls(socket.player.id, data.controls);
+	    	//simulator.setPlayerControls(socket.player.id, data.controls);
+	    	simulator.worldControls.addEvent({type: 'controls', id: socket.player.id, controls: data.controls}, simulator.world.step + 1);
 	    	socket.broadcast.emit('controls', {id: socket.player.id, controls: data.controls});
 	    });
 
 	    socket.on('setFace', function(data) {
 	        var base64Data = data.image.replace(/^data:image\/png;base64,/,""),
-	        	fileName = __dirname + '/public/images/faces/' + player.name + '.png';
+	        	fileName = __dirname + '/public/images/faces/' + player.id + '.png';
 
 	        console.log('Writing new face', fileName);
 	        fs.writeFile(fileName, base64Data, 'base64', function(err) {
 	        	if (err) console.log(err);
 	        });
+	        io.sockets.emit('faceChange', {playerID: player.id, face: '/images/faces/' + player.id + '.png'});
 	    });
 
 	    socket.on('disconnect', function() {
@@ -87,7 +90,25 @@ exports.startServer = function(config, callback) {
 	var start = null;
 	setInterval(function() {
 	    if (start == null) start = new Date().getTime();
+	    
+	    var update = {
+	    	events: simulator.worldControls.getEvents()
+	    };
+
+	    if (world.step % 20 == 0) {
+	    	update.positions = _.map(simulator.worldControls.getPlayers(), function(player) {
+	    		return {
+	    			position: player.position,
+	    			direction: player.direction
+	    		};
+	    	});
+	    }
+
+	    io.sockets.emit('update', update);
+
 	    simulator.runWorldToNow();
+
+
 
 	    if (world.step % 20 == 0) {
 		    for (var i = 0; i < clients.length; i++) {

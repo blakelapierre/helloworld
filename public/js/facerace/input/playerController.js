@@ -33,6 +33,7 @@ angular.module('facerace')
 				if (controls.left) turn -= Math.PI / 12;
 				if (controls.right) turn += Math.PI / 12;
 				controls.turn = turn;
+				controls.baseTurn = turn;
 				controls.quaternion = [ 0, 0, Math.sin(turn), Math.cos(turn) ];
 			};
 

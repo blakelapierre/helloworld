@@ -63,7 +63,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr class="player-score" ng-repeat="player in faceraceClient.world.players">
+						<tr class="player-score" ng-repeat="player in faceraceClient.world.state.players">
 							<td class="text-center"><img src="{{player.face}}" /></td>
 							<td class="text-center">{{player.name}}</td>
 							<td class="text-center">{{player.latency}}</td>

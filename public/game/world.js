@@ -17,7 +17,8 @@ facerace.World = function(simulator, options) {
 			image: '/images/course.png',
 			size: [2400, 2400],
 			startPosition: [10, 500, 11],
-			stars: []
+			stars: [],
+			friction: 0.01
 		};
 
 		for (var i = 0; i < 50; i++) {
@@ -33,19 +34,22 @@ facerace.World = function(simulator, options) {
 	var createWorld = function() {
 		var world = {
 			id: getNextWorldID(),
-			info: {
+			state: {
+				step: 0,
+				predictStep: 0,
+				start: new Date().getTime(),
 				nextPlayerID: 0,
 				receivedEventsForStep: 0,
-				lastReceivedEvents: 0
+				lastReceivedEvents: 0,
+				course: getCourse(1),
+				playerMap: {},
+				players: []
 			},
-			step: 0,
-			stepSize: simulator.stepSize,
-			dt: simulator.dt,
-			start: new Date().getTime(),
-			course: getCourse(1),
-			playerMap: {},
-			players: [],
-			friction: 0.01
+			info: {
+				options: options,
+				stepSize: simulator.stepSize,
+				dt: simulator.dt
+			}
 		};
 
 		var events = {};
@@ -53,32 +57,40 @@ facerace.World = function(simulator, options) {
 		var Player = facerace.Player(world, options);
 
 		var stepWorld = function() {
-			if (isClient && world.step > world.info.lastReceivedEvents) return;
+			if (!(isClient && world.state.step > world.state.receivedEventsForStep)) {
+				world.state.step++;
+				
+				processEvents();
+				updatePlayers(); 	
+			}
 
-			world.step++;
-
-			processEvents();
-			updatePlayers();
+			world.state.predictStep++;
+			
+			if (isClient) predictPlayers();
 		};
 
 		var processEvents = function() {
-			_.each(events[world.step] || [], processEvent);
-			delete events[world.step];
+			_.each(events[world.state.step] || [], processEvent);
+			delete events[world.state.step - 1];
 		};
 
 		var processEvent = function(e) {
 			switch (e.type) {
 				case 'controls':
-					setPlayerControlsAtStep(e.id, e.controls, world.step);
+					setPlayerControlsAtStep(e.id, e.controls, e.controls.step);
 					break;
 			}
 		};
 
 		var updatePlayers = function() {
-			_.each(world.players, Player.updatePlayer);
+			_.each(world.state.players, Player.updatePlayer);
 		};
 
-		var addEvent = function(e, step) {
+		var predictPlayers = function() {
+			_.each(world.state.players, Player.predictPlayer);
+		};
+
+		var addEvent = function(step, e) {
 			var queue = events[step] || [];
 			events[step] = queue;
 			queue.push(e);
@@ -87,12 +99,12 @@ facerace.World = function(simulator, options) {
 		var setEvents = function(step, es) {
 			var queue = events[step] = events[step] || [];
 			_.each(es, function(e) { queue.push(e); });
-			world.info.receivedEventsForStep = step;
-			world.info.lastReceivedEvents = new Date().getTime();
+			world.state.receivedEventsForStep = step;
+			world.state.lastReceivedEvents = new Date().getTime();
 		};
 
 		var getEvents = function(step) {
-			step = step || (world.step + 1);
+			step = step || (world.state.step + 1);
 			return {
 				step: step,
 				events: events[step]
@@ -100,19 +112,19 @@ facerace.World = function(simulator, options) {
 		};
 
 		var getPlayer = function(id) {
-			var index = world.playerMap[id];
-			return world.players[index];
+			var index = world.state.playerMap[id];
+			return world.state.players[index];
 		};
 
 		var getPlayers = function() {
-			return world.players;
+			return world.state.players;
 		};
 
 		var removePlayer = function(id) {
-			var index = world.playerMap[id];
+			var index = world.state.playerMap[id];
 			if (index != null) {
-				world.players.splice(index, 1);
-				delete world.playerMap[id];
+				world.state.players.splice(index, 1);
+				delete world.state.playerMap[id];
 			}
 		};
 
@@ -126,7 +138,7 @@ facerace.World = function(simulator, options) {
 		};
 
 		var startRace = function() {
-			_.each(world.players, Player.startRace);
+			_.each(world.state.players, Player.startRace);
 		};
 
 		return {

@@ -103,21 +103,19 @@ var faceraceClient = (function() {
 			var sourceWorld = data.world,
 				world = getWorld(),
 				welcomeTime = new Date().getTime(),
-				timeElapsed = data.currentTime - sourceWorld.start;
+				timeElapsed = data.currentTime - sourceWorld.state.start;
 			
 			console.log('game started', timeElapsed, welcomeTime, data);
 
-			world.playerMap = sourceWorld.playerMap;
-			_.each(sourceWorld.players, function(p) {
-				world.players.push(p);
-			});
+			world.state.playerMap = sourceWorld.state.playerMap;
+			_.each(sourceWorld.state.players, simulator.worldControls.addPlayer);
 
-			world.step = sourceWorld.step;
-			world.start = welcomeTime - timeElapsed - ((welcomeTime - startTime) / 2);
+			world.state.step = world.state.predictStep = sourceWorld.state.step;
+			world.state.start = welcomeTime - timeElapsed - ((welcomeTime - startTime) / 2);
 
 			playerID = data.playerID;
 			player = simulator.getPlayer(playerID);
-			playerIndex = sourceWorld.playerMap[data.playerID];
+			playerIndex = sourceWorld.state.playerMap[data.playerID];
 			
 			metrics.player = player;
 			metrics.world = world;
@@ -125,7 +123,7 @@ var faceraceClient = (function() {
 
 			player.controls = controls;
 
-			var course = createPlane(sourceWorld.course.image, sourceWorld.course.size[0], sourceWorld.course.size[1]);
+			var course = createPlane(sourceWorld.state.course.image, sourceWorld.state.course.size[0], sourceWorld.state.course.size[1]);
 			course.position.set(50, 50, 0);
 			course.up.set(1, 0, 0);
 			scene.add(course);
@@ -182,12 +180,12 @@ var faceraceClient = (function() {
 		var processNewState = function(state) {
 			var sourceWorld = state.world;
 				world = getWorld(),
-				players = world.players,
-				stars = world.stars;
+				players = world.state.players,
+				stars = world.state.course.stars;
 
-			world.playerMap = sourceWorld.playerMap;
+			world.state.playerMap = sourceWorld.state.playerMap;
 
-			_.each(sourceWorld.players, function(sourcePlayer, index) {
+			_.each(sourceWorld.state.players, function(sourcePlayer, index) {
 				var id = sourcePlayer.id,
 					localPlayer = simulator.getPlayer(id);
 
@@ -204,19 +202,33 @@ var faceraceClient = (function() {
 				}
 			});
 
-			_.each(sourceWorld.stars, function(star, index) {
+			_.each(sourceWorld.state.course.stars, function(star, index) {
 				_.extend(stars[index], star);
 			});
 
 		};
 
+		var leftCount = 0,
+			rightCount = 0,
+			maxCount = 20;
 		var step = function(timestamp) {
 			var world = simulator.world,
-				simulatorPlayers = world.players,
-				stars = world.stars;
-			
-			//simulator.setPlayerControls(playerID, controls);
-			simulator.worldControls.addEvent({type: 'controls', id: playerID, controls: controls}, world.step + 1);
+				simulatorPlayers = world.state.players,
+				stars = world.state.course.stars;
+
+			if (controls.left) {
+				if (leftCount < maxCount) leftCount++;
+				controls.turn = controls.baseTurn * (1 + (leftCount / maxCount));
+			}
+			else leftCount = 0;
+			if (controls.right) {
+				if (rightCount < maxCount) rightCount++;
+				controls.turn = controls.baseTurn * (1 + (rightCount / maxCount));
+			}
+			else rightCount = 0;
+
+			controls.step = world.state.predictStep + 1;
+			simulator.worldControls.addEvent(world.state.predictStep + 1, {type: 'controls', id: playerID, controls: controls});
 			sendControls();
 
 			simulator.runWorldToNow();
@@ -238,13 +250,15 @@ var faceraceClient = (function() {
 			stats.update();
 			window.requestAnimationFrame(step);
 
-			fire('tick', world.step);
+			fire('tick', world.state.predictStep);
 		};
 		
 		var logs = 0;
 		var updatePlayer = function(simulatorPlayer) {
 			var id = simulatorPlayer.id,
-				position = simulatorPlayer.state.metrics.position,
+				state = simulatorPlayer.prediction,
+				metrics = state.metrics,
+				position = metrics.position,
 				pObject = playerObjects[id],
 				targetZ = position[2];
 			
@@ -276,7 +290,7 @@ var faceraceClient = (function() {
 						
 			//pObject.position.z = targetZ + 5 + 5 * Math.sin(simulatorPlayer.step * 20 / 1000 * 2 * Math.PI / 5);
 
-			pObject.rotation.y = -simulatorPlayer.state.metrics.direction;
+			pObject.rotation.y = -metrics.direction;
 
 			pObject.scale.set(simulatorPlayer.scale, simulatorPlayer.scale, simulatorPlayer.scale);
 
@@ -346,7 +360,7 @@ var faceraceClient = (function() {
 			};
 
 			if (controlsChanged()) {
-				controls.step = game.world.step;
+				controls.step = game.world.state.predictStep;
 				emit('controls', {controls: controls});
 				_.each(controlList, function(control) { oldControls[control] = controls[control]; });
 			}

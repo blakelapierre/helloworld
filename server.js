@@ -38,8 +38,7 @@ exports.startServer = function(config, callback) {
 	    });
 
 	    socket.on('controls', function(data) {
-	    	//simulator.setPlayerControls(socket.player.id, data.controls);
-	    	simulator.worldControls.addEvent({type: 'controls', id: socket.player.id, controls: data.controls}, simulator.world.step + 1);
+	    	simulator.worldControls.addEvent(simulator.world.state.step + 1, {type: 'controls', id: socket.player.id, controls: data.controls});
 	    	socket.broadcast.emit('controls', {id: socket.player.id, controls: data.controls});
 	    });
 
@@ -92,10 +91,11 @@ exports.startServer = function(config, callback) {
 	    if (start == null) start = new Date().getTime();
 	    
 	    var update = {
+	    	step: world.state.step,
 	    	events: simulator.worldControls.getEvents()
 	    };
 
-	    if (world.step % 20 == 0) {
+	    if (world.state.step % 40 == 0) {
 	    	update.positions = _.map(simulator.worldControls.getPlayers(), function(player) {
 	    		return {
 	    			position: player.state.metrics.position,
@@ -110,7 +110,7 @@ exports.startServer = function(config, callback) {
 
 
 
-	    if (world.step % 20 == 0) {
+	    if (world.step % 100 == 0) {
 		    for (var i = 0; i < clients.length; i++) {
 		    	var client = clients[i];
 		    	client.sendWorld();

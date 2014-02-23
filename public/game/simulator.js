@@ -28,17 +28,16 @@ var faceraceSimulator = (function() {
 
 		var setPlayerControls = function(id, controls) {
 			var now = new Date().getTime(),
-				currentStep = Math.floor((now - world.start) / stepSize);
+				currentStep = Math.floor((now - world.state.start) / stepSize);
 
 			worldControls.setPlayerControlsAtStep(id, controls, currentStep);
 		};
 
 		var runWorldToNow = function() {
 			var now = new Date().getTime(),
-				currentStep = Math.floor((now - world.start) / stepSize),
-				steps = currentStep - world.step;
+				currentStep = Math.floor((now - world.state.start) / stepSize);
 
-			for (var i = 0; i < steps; i++) worldControls.stepWorld();
+			while (world.state.predictStep < currentStep) worldControls.stepWorld();
 		};
 
 		return {

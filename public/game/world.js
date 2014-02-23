@@ -5,7 +5,7 @@ if (typeof require === 'function' || window.require) {
 	facerace.Player = require('../game/player.js').Player;
 };
 
-facerace.World = function(simulator) {
+facerace.World = function(simulator, options) {
 	var isClient = simulator.isClient;
 
 	var getNextWorldID = function() {
@@ -50,7 +50,7 @@ facerace.World = function(simulator) {
 
 		var events = {};
 
-		var Player = facerace.Player(world);
+		var Player = facerace.Player(world, options);
 
 		var stepWorld = function() {
 			if (isClient && world.step > world.info.lastReceivedEvents) return;
@@ -75,7 +75,7 @@ facerace.World = function(simulator) {
 		};
 
 		var updatePlayers = function() {
-			_.each(world.players, function(player, i) { Player.updatePlayer(world.step, player, i); });
+			_.each(world.players, Player.updatePlayer);
 		};
 
 		var addEvent = function(e, step) {
@@ -126,14 +126,7 @@ facerace.World = function(simulator) {
 		};
 
 		var startRace = function() {
-			var players = world.players,
-				startPosition = world.course.startPosition;
-
-			_.each(players, function(player, i) {
-				vec3.set(player.position, startPosition[0], startPosition[1] + 10 * i, startPosition[2]);
-				vec3.set(player.acceleration, 0, 0, 0);
-				vec3.set(player.velocity, 0, 0, 0);
-			});
+			_.each(world.players, Player.startRace);
 		};
 
 		return {

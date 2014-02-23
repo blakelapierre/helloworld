@@ -93,8 +93,8 @@ var faceraceClient = (function() {
 			if (data.positions) {
 				var players = simulator.worldControls.getPlayers();
 				for (var i = 0; i < players.length; i++) {
-					vec3.copy(players[i].position, data.positions[i].position);
-					vec3.copy(players[i].direction, data.positions[i].direction);
+					vec3.copy(players[i].state.metrics.position, data.positions[i].position);
+					vec3.copy(players[i].state.metrics.direction, data.positions[i].direction);
 				}
 			}
 		});
@@ -244,7 +244,7 @@ var faceraceClient = (function() {
 		var logs = 0;
 		var updatePlayer = function(simulatorPlayer) {
 			var id = simulatorPlayer.id,
-				position = simulatorPlayer.position,
+				position = simulatorPlayer.state.metrics.position,
 				pObject = playerObjects[id],
 				targetZ = position[2];
 			
@@ -276,7 +276,7 @@ var faceraceClient = (function() {
 						
 			//pObject.position.z = targetZ + 5 + 5 * Math.sin(simulatorPlayer.step * 20 / 1000 * 2 * Math.PI / 5);
 
-			pObject.rotation.y = -simulatorPlayer.direction;
+			pObject.rotation.y = -simulatorPlayer.state.metrics.direction;
 
 			pObject.scale.set(simulatorPlayer.scale, simulatorPlayer.scale, simulatorPlayer.scale);
 

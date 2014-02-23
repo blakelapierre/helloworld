@@ -98,8 +98,8 @@ exports.startServer = function(config, callback) {
 	    if (world.step % 20 == 0) {
 	    	update.positions = _.map(simulator.worldControls.getPlayers(), function(player) {
 	    		return {
-	    			position: player.position,
-	    			direction: player.direction
+	    			position: player.state.metrics.position,
+	    			direction: player.state.metrics.direction
 	    		};
 	    	});
 	    }

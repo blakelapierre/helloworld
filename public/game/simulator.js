@@ -20,7 +20,7 @@ var faceraceSimulator = (function() {
 			isClient: !!options.isClient
 		};
 
-		var World = facerace.World(simulator);
+		var World = facerace.World(simulator, options);
 			w = World.createWorld(),
 			worldControls = w.controls,
 			world = w.data,

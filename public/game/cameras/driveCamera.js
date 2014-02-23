@@ -39,10 +39,10 @@ facerace.DriveCamera.prototype.updateDriveCamera = function() {
 		config		= this.config,
 		temps 		= this._temps,
 		player		= target.simulatorPlayer,
-		controls	= player.controls,
-		d 			= player.direction,
+		controls	= player.state.controls,
+		d 			= player.state.metrics.direction,
 		direction 	= temps.direction.set( Math.sin( d ), Math.cos( d ), 0 ),
-		speed 		= temps.speed.fromArray( player.velocity ).length(),
+		speed 		= temps.speed.fromArray( player.state.metrics.velocity ).length(),
 		moveBack 	= parseInt( config.trailDistance ) + ( speed / 5 ),
 		moveUp		= speed / 4;
 

@@ -52,7 +52,7 @@ var faceraceClient = (function() {
 	};
 
 	var startGame = function(url, controls, graphics, config) {
-		var simulator = faceraceSimulator(20, {isClient: true}),
+		var simulator = faceraceSimulator(20, {isClient: true, logStates: true}),
 			camera = graphics.camera,
 			scene = graphics.scene,
 			renderer = graphics.renderer,
@@ -87,17 +87,7 @@ var faceraceClient = (function() {
 
 		emit('joinGame', {name: 'blake', image: '/images/faces/blake.png'});
 
-		socket.on('update', function(data) {
-			simulator.worldControls.setEvents(data.step, data.events);
-
-			if (data.positions) {
-				var players = simulator.worldControls.getPlayers();
-				for (var i = 0; i < players.length; i++) {
-					vec3.copy(players[i].state.metrics.position, data.positions[i].position);
-					vec3.copy(players[i].state.metrics.direction, data.positions[i].direction);
-				}
-			}
-		});
+		socket.on('update', simulator.worldControls.processUpdate);
 
 		socket.on('welcome', function(data) {
 			var sourceWorld = data.world,
@@ -111,7 +101,7 @@ var faceraceClient = (function() {
 			_.each(sourceWorld.state.players, simulator.worldControls.addPlayer);
 
 			world.state.step = world.state.predictStep = sourceWorld.state.step;
-			world.state.start = welcomeTime - timeElapsed - ((welcomeTime - startTime) / 2);
+			world.state.start = welcomeTime - timeElapsed	+ 5;
 
 			playerID = data.playerID;
 			player = simulator.getPlayer(playerID);
@@ -250,6 +240,18 @@ var faceraceClient = (function() {
 			stats.update();
 			window.requestAnimationFrame(step);
 
+			if (world.state.predictStep % 200 == 0) {
+				var l = _.map(simulator.getStateLog(), JSON.parse),
+					diffs = [];
+				
+				_.reduce(_.map(simulator.getStateLog(), JSON.parse), function(prev, next) {
+					diffs.push(jsondiffpatch.diff(prev, next));
+					return next;
+				}, {});
+
+				console.log(JSON.stringify(diffs));
+			}
+
 			fire('tick', world.state.predictStep);
 		};
 		
@@ -356,14 +358,16 @@ var faceraceClient = (function() {
 		var controlList = ['turn', 'up', 'down', 'left', 'right', 'space'];
 		var sendControls = function() {
 			var controlsChanged = function() {
-				return !_.every(controlList, function(control) { return controls[control] == oldControls[control]; });
+				return !_.every(controlList, function(control) { 
+					return controls[control] === oldControls[control];
+				});
 			};
 
-			if (controlsChanged()) {
-				controls.step = game.world.state.predictStep;
+			//if (controlsChanged()) {
+				controls.step = game.world.state.predictStep + 1;
 				emit('controls', {controls: controls});
 				_.each(controlList, function(control) { oldControls[control] = controls[control]; });
-			}
+			//}
 		};
 
 		var setFace = function(data) {

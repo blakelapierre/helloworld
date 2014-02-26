@@ -1,0 +1,6 @@
+{
+	"name": "facerace",
+	"dependencies": {
+		"jsondiffpatch": "latest"
+	}
+}

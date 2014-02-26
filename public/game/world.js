@@ -6,7 +6,8 @@ if (typeof require === 'function' || window.require) {
 };
 
 facerace.World = function(simulator, options) {
-	var isClient = simulator.isClient;
+	var isClient = simulator.isClient,
+		log = options.log;
 
 	var getNextWorldID = function() {
 		return simulator.nextWorldID++;
@@ -57,6 +58,7 @@ facerace.World = function(simulator, options) {
 		var Player = facerace.Player(world, options);
 
 		var stepWorld = function() {
+//			log.debug('stepWorld at %s', world.state.step);
 			if (!(isClient && world.state.step > world.state.receivedEventsForStep)) {
 				world.state.step++;
 				
@@ -137,8 +139,22 @@ facerace.World = function(simulator, options) {
 
 		};
 
+		var getState = function() {
+			return world.state;
+		};
+
 		var startRace = function() {
 			_.each(world.state.players, Player.startRace);
+		};
+
+		var processUpdate = function(update) {
+			setEvents(update.step, update.events);
+			_.each(update.metrics || [], processMetricUpdate);
+		};
+
+		var processMetricUpdate = function(metricUpdate) {
+			var player = getPlayer(metricUpdate.id);
+			Player.processMetricUpdate(player, metricUpdate);
 		};
 
 		return {
@@ -154,7 +170,9 @@ facerace.World = function(simulator, options) {
 				updateLastControls: Player.updateLastControls,
 				stepWorld: stepWorld,
 				setPlayerControlsAtStep: setPlayerControlsAtStep,
-				setStateAt: setStateAt
+				setStateAt: setStateAt,
+				processUpdate: processUpdate,
+				getState: getState
 			},
 			admin: {
 				startRace: startRace

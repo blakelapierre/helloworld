@@ -1,5 +1,6 @@
 var express = require('express'),
-	fs = require('fs');
+	fs = require('fs')
+	log = require('./log.js').Log();
 
 exports.startServer = function(config, callback) {
     var app = express(),
@@ -14,7 +15,7 @@ exports.startServer = function(config, callback) {
 
 	io.set('log level', 0);
 
-	var simulator = require('./public/game/simulator.js').simulator(20),
+	var simulator = require('./public/game/simulator.js').simulator(20, {log: log}),
 	    world = simulator.world;
 
 
@@ -96,8 +97,10 @@ exports.startServer = function(config, callback) {
 	    };
 
 	    if (world.state.step % 40 == 0) {
-	    	update.positions = _.map(simulator.worldControls.getPlayers(), function(player) {
+	    	update.metrics = _.map(simulator.worldControls.getPlayers(), function(player) {
 	    		return {
+	    			id: player.id,
+	    			step: world.state.step,
 	    			position: player.state.metrics.position,
 	    			direction: player.state.metrics.direction
 	    		};
@@ -107,7 +110,6 @@ exports.startServer = function(config, callback) {
 	    io.sockets.emit('update', update);
 
 	    simulator.runWorldToNow();
-
 
 
 	    if (world.step % 100 == 0) {
@@ -128,7 +130,8 @@ exports.startServer = function(config, callback) {
 	    }
 	}, 20);
 
-	console.log('Listening on ' + port);
+	//console.log('Listening on ' + port);
+	log.info('Listening on ' + port);
 
 	return callback(webserver, io);
 };

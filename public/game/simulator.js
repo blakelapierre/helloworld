@@ -9,6 +9,13 @@ if (typeof require === 'function' || window.require) {
 var faceraceSimulator = (function() {
 	return function(stepSize, options) {
 		options = options || {};
+		options.log = options.log || {
+			info: function() { console.log.apply(console, arguments); },
+			debug: function() {}
+		};
+
+		var logStates = options.logStates,
+			stateLog = [];
 
 		var dt = stepSize / 1000,
 			nextWorldID = 0;
@@ -37,7 +44,14 @@ var faceraceSimulator = (function() {
 			var now = new Date().getTime(),
 				currentStep = Math.floor((now - world.state.start) / stepSize);
 
-			while (world.state.predictStep < currentStep) worldControls.stepWorld();
+			while (world.state.predictStep < currentStep) {
+				worldControls.stepWorld();
+				if (logStates) stateLog.push(JSON.stringify(worldControls.getState())); 
+			}
+		};
+
+		var getStateLog = function() {
+			return stateLog;
 		};
 
 		return {
@@ -50,7 +64,8 @@ var faceraceSimulator = (function() {
 			setPlayerControls: setPlayerControls,
 			setPlayerControlsAtStep: worldControls.setPlayerControlsAtStep,
 			runWorldToNow: runWorldToNow,
-			updateLastControls: worldControls.updateLastControls
+			updateLastControls: worldControls.updateLastControls,
+			getStateLog: getStateLog
 		};
 	};
 })();

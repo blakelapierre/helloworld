@@ -1,6 +1,8 @@
 
 var facerace = facerace || {};
 facerace.Player = function(world, options) {
+	var log = options.log;
+
 	var getNextPlayerID = function() {
 		return world.state.nextPlayerID++;
 	};
@@ -31,7 +33,7 @@ facerace.Player = function(world, options) {
 						down: false,
 					},
 					metrics: {
-						position: 		vec3.clone(world.state.course.startPosition),
+						position: 		_.clone(world.state.course.startPosition),
 						velocity: 		[0, 0, 0],
 						acceleration: 	[0, 0, 0],
 						orientation:	[-90, 0, 0],
@@ -69,6 +71,7 @@ facerace.Player = function(world, options) {
 
 		if (!!options.isClient) {
 			player.prediction = JSON.parse(JSON.stringify(player.state));
+			player.stateUpdates = {};
 		}
 
 		player.id = getNextPlayerID();
@@ -106,6 +109,8 @@ facerace.Player = function(world, options) {
 			state.step++;
 
 			state.controls = controls = getCurrentControls(player, state);
+
+			//log.debug('stepping player %d to %d with %j', player.id, state.step, controls, {});
 
 			stepTurn = 0;
 			turn = controls.turn;
@@ -173,6 +178,7 @@ facerace.Player = function(world, options) {
 		if (controls == null) {
 			controls = player.controlsHistory[step - 1] || player.controlsHistory[0];
 			player.controlsHistory[step] = controls;
+			// log.info(step, controls);
 		}
 
 		if (step > 50) delete player.controlsHistory[step - 50];
@@ -187,11 +193,21 @@ facerace.Player = function(world, options) {
 
 		player.state.controlsChangedLastStep = false;
 		while (player.state.step < step && player.state.step < player.state.lastControlsReceivedStep) {
+			if (!!options.isClient) {
+				var nextStep = player.state.step + 1,
+					stateUpdate = player.stateUpdates[nextStep];
+				if (stateUpdate) {
+					applyMetricUpdate(stateUpdate);
+					delete player.stateUpdates[nextStep];
+				}
+			}
+
 			updateState(player.state, player);
 			player.state.controlsChangedLastStep = true;
 		}
 
 		if (!!options.isClient && player.state.controlsChangedLastStep) {
+			//log.info('player %d reset at player step %d, world step %d, prediction step %d', player.id, player.state.step, step, player.prediction.step, {});
 			resetPrediction(player);
 		}
 	};
@@ -264,8 +280,11 @@ facerace.Player = function(world, options) {
 	};
 
 	var setControlsAtStep = function(player, controls, step) {
+		if (player.controlsHistory[step] != null) return;
+
 		player.controlsHistory[step] = _.clone(controls);
 		player.state.lastControlsReceivedStep = step;
+		log.debug('player: %s, step: %d, controls: %j, state: %j', player.id, step, controls, player.state, {});
 	};
 
 	var getPlayer = function(id) {
@@ -282,6 +301,18 @@ facerace.Player = function(world, options) {
 		vec3.set(metrics.velocity, 0, 0, 0);
 	};
 
+	var processMetricUpdate = function(player, metricUpdate) {
+		if (player.step < metricUpdate.step) player.stateUpdates[metricUpdate.step] = metricUpdate;
+		else applyMetricUpdate(player, metricUpdate);
+	};
+
+	var applyMetricUpdate = function(player, metricUpdate) {
+		var metrics = player.state.metrics;
+
+		vec3.copy(metrics.position, metricUpdate.position);
+		vec3.copy(metrics.direction, metricUpdate.direction);
+	};
+
 	return {
 		getPlayer: getPlayer,
 		addPlayer: addPlayer,
@@ -289,7 +320,8 @@ facerace.Player = function(world, options) {
 		predictPlayer: predictPlayer,
 		setControlsAtStep: setControlsAtStep,
 		updateLastControls: updateLastControls,
-		startRace: startRace
+		startRace: startRace,
+		processMetricUpdate: processMetricUpdate
 	};
 };
 

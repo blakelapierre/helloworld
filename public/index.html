@@ -31,6 +31,7 @@
 	<script type="text/javascript" src="/js/facerace/facerace.js"></script>
 	<script type="text/javascript" src="/js/facerace/debug.js"></script>
 	<script type="text/javascript" src="/js/facerace/debug/diff.js"></script>
+	<script type="text/javascript" src="/js/facerace/debug/diffViewerWrapper.js"></script>
 	<script type="text/javascript" src="/js/facerace/scene/scene.js"></script>
 	<script type="text/javascript" src="/js/facerace/input/camera.js"></script>
 	<script type="text/javascript" src="/js/facerace/input/microphone.js"></script>
@@ -84,6 +85,10 @@
 		<camera show-camera="showCamera" face-data="faceData"></camera>
 
 		<microphone show-microphone="showMicrophone"></microphone>
+
+		<div id="diffViewer" ng-class="{'show-overlay': diffViewerVisible, 'overlay': true}">
+			<diff-viewer states="stateLog"></diff-viewer>
+		</div>
 		
 		<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
 			<div object-editor object="debugObject"></div>
@@ -103,7 +108,7 @@
 			<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
 			<div id="brake" class="brake" ng-click="brake()"></div>
 		</div>
-		<div class="overlay">
+		<div class="latency-overlay">
 			<span>{{metrics.latency}} ms</span>
 		</div>
 	</facerace>

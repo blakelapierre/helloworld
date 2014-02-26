@@ -196,6 +196,7 @@ facerace.Player = function(world, options) {
 			if (!!options.isClient) {
 				var nextStep = player.state.step + 1,
 					stateUpdate = player.stateUpdates[nextStep];
+				//console.log('state', nextStep, stateUpdate);
 				if (stateUpdate) {
 					applyMetricUpdate(stateUpdate);
 					delete player.stateUpdates[nextStep];
@@ -302,12 +303,14 @@ facerace.Player = function(world, options) {
 	};
 
 	var processMetricUpdate = function(player, metricUpdate) {
+		console.log('process', player, metricUpdate);
 		if (player.step < metricUpdate.step) player.stateUpdates[metricUpdate.step] = metricUpdate;
 		else applyMetricUpdate(player, metricUpdate);
 	};
 
 	var applyMetricUpdate = function(player, metricUpdate) {
 		var metrics = player.state.metrics;
+		console.log('apply update', metrics, metricUpdate);
 
 		vec3.copy(metrics.position, metricUpdate.position);
 		vec3.copy(metrics.direction, metricUpdate.direction);

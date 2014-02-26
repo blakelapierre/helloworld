@@ -44,6 +44,8 @@ var faceraceSimulator = (function() {
 			var now = new Date().getTime(),
 				currentStep = Math.floor((now - world.state.start) / stepSize);
 
+				
+
 			while (world.state.predictStep < currentStep) {
 				worldControls.stepWorld();
 				if (logStates) stateLog.push(JSON.stringify(worldControls.getState())); 

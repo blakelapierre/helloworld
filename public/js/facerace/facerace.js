@@ -29,6 +29,11 @@ angular.module('facerace')
 				client.on('message', function(message) {
 					showMessage(message);
 				});
+
+				client.on('stateLog', function(log) {
+					$scope.stateLog = log;
+					$scope.$apply();
+				});
 			};
 
 			var showMessage = function() {};
@@ -111,6 +116,7 @@ angular.module('facerace')
 			// $scope.infoVisible = true;
 			// $scope.showCamera = true;
 			// $scope.showMicrophone = true;
+			// $scope.diffViewerVisible = true;
 		}]
 	};
 });

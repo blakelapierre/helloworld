@@ -52,7 +52,7 @@ var faceraceClient = (function() {
 	};
 
 	var startGame = function(url, controls, graphics, config) {
-		var simulator = faceraceSimulator(20, {isClient: true, logStates: true}),
+		var simulator = faceraceSimulator(20, {isClient: true, logStates: false}),
 			camera = graphics.camera,
 			scene = graphics.scene,
 			renderer = graphics.renderer,
@@ -184,8 +184,7 @@ var faceraceClient = (function() {
 				if (localPlayer) {
 					//delete sourcePlayer.lastControlsUpdate; // ugly
 					// _.extend(localPlayer, _.omit(sourcePlayer, 'lastControlsUpdate'), {step: localPlayer.step });
-					_.extend(localPlayer, _.omit(sourcePlayer, 'lastControlsUpdate'));
-					simulator.updateLastControls(localPlayer);
+					_.extend(localPlayer.state, _.omit(sourcePlayer.state, 'lastControlsUpdate'));
 				}
 				else {
 					alert('error, bad player!');
@@ -217,8 +216,6 @@ var faceraceClient = (function() {
 			}
 			else rightCount = 0;
 
-			controls.step = world.state.predictStep + 1;
-			simulator.worldControls.addEvent(world.state.predictStep + 1, {type: 'controls', id: playerID, controls: controls});
 			sendControls();
 
 			simulator.runWorldToNow();
@@ -239,18 +236,6 @@ var faceraceClient = (function() {
 
 			stats.update();
 			window.requestAnimationFrame(step);
-
-			if (world.state.predictStep % 200 == 0) {
-				var l = _.map(simulator.getStateLog(), JSON.parse),
-					diffs = [];
-				
-				_.reduce(_.map(simulator.getStateLog(), JSON.parse), function(prev, next) {
-					diffs.push(jsondiffpatch.diff(prev, next));
-					return next;
-				}, {});
-
-				console.log(JSON.stringify(diffs));
-			}
 
 			fire('tick', world.state.predictStep);
 		};
@@ -362,6 +347,9 @@ var faceraceClient = (function() {
 					return controls[control] === oldControls[control];
 				});
 			};
+
+			controls.step = simulator.world.state.predictStep + 1;
+			simulator.worldControls.addEvent(simulator.world.state.predictStep + 1, {type: 'controls', id: playerID, controls: controls});
 
 			//if (controlsChanged()) {
 				controls.step = game.world.state.predictStep + 1;

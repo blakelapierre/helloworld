@@ -85,11 +85,11 @@ var faceraceClient = (function() {
 
 		var metrics = {latency: 0};
 
-		emit('joinGame', {name: 'blake', image: '/images/faces/blake.png'});
+		emit('join', {name: 'blake', face: '/images/faces/blake.png'});
 
 		socket.on('update', simulator.worldControls.processUpdate);
 
-		socket.on('welcome', function(data) {
+		socket.on('world', function(data) {
 			var sourceWorld = data.world,
 				world = getWorld(),
 				welcomeTime = new Date().getTime(),
@@ -97,11 +97,13 @@ var faceraceClient = (function() {
 			
 			console.log('game started', timeElapsed, welcomeTime, data);
 
-			world.state.playerMap = sourceWorld.state.playerMap;
-			_.each(sourceWorld.state.players, simulator.worldControls.addPlayer);
+			simulator.loadWorld(sourceWorld);
 
-			world.state.step = world.state.predictStep = sourceWorld.state.step;
-			world.state.start = welcomeTime - timeElapsed	+ 5;
+			//world.state.playerMap = sourceWorld.state.playerMap;
+			//_.each(sourceWorld.state.players, simulator.worldControls.addPlayer);
+
+			//world.state.step = world.state.predictStep = sourceWorld.state.step;
+			//world.state.start = welcomeTime - timeElapsed	+ 5;
 
 			playerID = data.playerID;
 			player = simulator.getPlayer(playerID);

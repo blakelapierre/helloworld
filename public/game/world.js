@@ -1,16 +1,24 @@
 var facerace = facerace || {};
 if (typeof require === 'function' || window.require) {
 	_ = require('underscore');
-	vec3 = require('../js/lib/gl-matrix-min.js').vec3;
+	vec3 = require('../js/lib/js-matrix-min.js').vec3;
 	facerace.Player = require('../game/player.js').Player;
-};
+}
 
-facerace.World = function(simulator, options) {
-	var isClient = simulator.isClient,
-		log = options.log;
+(function() {
+	var createState = function(options) {
 
-	var getNextWorldID = function() {
-		return simulator.nextWorldID++;
+		return {
+			step: 0,
+			predictStep: 0,
+			start: options.start || new Date().getTime(),
+			nextPlayerID: 0,
+			receivedEventsForStep: 0,
+			lastReceivedEvents: 0,
+			course: getCourse(1),
+			playerMap: {},
+			players: []
+		};
 	};
 
 	var getCourse = function(id) {
@@ -32,158 +40,155 @@ facerace.World = function(simulator, options) {
 		return course;
 	};
 
-	var createWorld = function() {
-		var world = {
-			id: getNextWorldID(),
-			state: {
-				step: 0,
-				predictStep: 0,
-				start: new Date().getTime(),
-				nextPlayerID: 0,
-				receivedEventsForStep: 0,
-				lastReceivedEvents: 0,
-				course: getCourse(1),
-				playerMap: {},
-				players: []
-			},
-			info: {
-				options: options,
-				stepSize: simulator.stepSize,
-				dt: simulator.dt
-			}
+	exports.World = (function(options) {
+		options = options || {};
+
+		var world = {},
+			id = options.id,
+			state = createState(options),
+			players = [],
+			playerMap = {},
+			inMQ = [],
+			outMQ = [];
+
+		var predict = !!options.predict,
+			isClient = !!options.isClient;
+
+		var step = function(world) {
+			world.state.step++;
+
+			processMessages();
+			updatePlayers();
+
+			if (predict) predictPlayers();
 		};
 
-		var events = {};
+		var processMessages = (function() {
+			var withCallback = function(fn) {
+				return function(message) {
+					var callback = message.callback;
 
-		var Player = facerace.Player(world, options);
+					var ret = fn(message);
 
-		var stepWorld = function() {
-//			log.debug('stepWorld at %s', world.state.step);
-			if (!(isClient && world.state.step > world.state.receivedEventsForStep)) {
-				world.state.step++;
-				
-				processEvents();
-				updatePlayers(); 	
-			}
+					if (callback) {
+						outMQ.push({
+							type: 'callback',
+							callback: function() { callback(world, ret); }
+						});
+					}
+				};
+			};
 
-			world.state.predictStep++;
-			
-			if (isClient) predictPlayers();
-		};
+			var handlers = {
+				addPlayer: withCallback(function(message) {
+					var config = message.config;
+					
+					var player = facerace.Player(world, {
+						id: state.nextPlayerID++,
+						name: config.name,
+						face: config.face,
+						isServer: isServer,
+						predict: predict
+					});
 
-		var processEvents = function() {
-			_.each(events[world.state.step] || [], processEvent);
-			delete events[world.state.step - 1];
-		};
+					return player;
+				}),
+				controls: function(message) {
+					var player = playerMap[message.playerID];
+					player.setControlsAtStep(message.controls, message.step);
+					return true;
+				},
+				stateUpdate: function(update) {
+					var player = playerMap[message.playerID];
+					player.setStateAtStep(message.state, message.step);
+					return true;
+				}
+			};
 
-		var processEvent = function(e) {
-			switch (e.type) {
-				case 'controls':
-					setPlayerControlsAtStep(e.id, e.controls, e.controls.step);
-					break;
-			}
-		};
+			return function(step) {
+				_.each(inMQ, function(message) {
+					handlers[message.type](message, step);
+				});
+			};
+		})();
 
 		var updatePlayers = function() {
-			_.each(world.state.players, Player.updatePlayer);
+			_.each(players, function(player) {
+				player.step();
+			});
 		};
 
 		var predictPlayers = function() {
-			_.each(world.state.players, Player.predictPlayer);
+			_.each(players, function(player) {
+				player.predict();
+			});
 		};
 
-		var addEvent = function(step, e) {
-			var queue = events[step] || [];
-			events[step] = queue;
-			queue.push(e);
+		var writeMessages = function(messages) {
+			if (messages.length == 0) return;
+			if (outMQ.length == 0) outMQ = messages;
+			else outMQ = outMQ.concat(messages);
 		};
 
-		var setEvents = function(step, es) {
-			var queue = events[step] = events[step] || [];
-			_.each(es, function(e) { queue.push(e); });
-			world.state.receivedEventsForStep = step;
-			world.state.lastReceivedEvents = new Date().getTime();
+		var readMessages = function() {
+			var out = outMQ;
+			outMQ = [];
+			return out;
 		};
 
-		var getEvents = function(step) {
-			step = step || (world.state.step + 1);
+		var msg = function(message) {
+			outMQ.push(message);
+		};
+
+		var getWorldState = function() {
 			return {
-				step: step,
-				events: events[step]
+				step: state.step,
+				predictStep: state.predictStep,
+				start: state.start,
+				course: getCourse(1),
+				playerMap: _.map(state.players, function(player {
+					return player.id;
+				},
+				players: _.map(state.players, function(player) {
+					return {
+						state: player.state,
+						meta: player.meta
+					};
+				})
 			};
 		};
 
-		var getPlayer = function(id) {
-			var index = world.state.playerMap[id];
-			return world.state.players[index];
+		var loadFrom = function(config) {
+			state.step = config.step;
+			state.predictStep = config.step;
+			state.start = config.start;
+			state.course = config.course;
+
+			state.players = _.map(config.players, function(playerConfig) {
+				var player = facerace.Player({
+					id: playerConfig.id,
+					name: playerConfig.meta.name,
+					face: playerConfig.meta.face,
+					isServer: isServer,
+					predict: predict
+				});
+				player.loadFrom(playerConfig);
+				return player;
+			});
+
+			state.playerMap = {}; // should we be creating a new map here?
+			_.each(state.players, function(player) {
+				state.playerMap[player.id] = player;
+			});
 		};
 
-		var getPlayers = function() {
-			return world.state.players;
-		};
-
-		var removePlayer = function(id) {
-			var index = world.state.playerMap[id];
-			if (index != null) {
-				world.state.players.splice(index, 1);
-				delete world.state.playerMap[id];
-			}
-		};
-
-		var setPlayerControlsAtStep = function(id, controls, step) {
-			var player = Player.getPlayer(id);
-			Player.setControlsAtStep(player, controls, step);
-		};
-
-		var setStateAt = function(state, step) {
-
-		};
-
-		var getState = function() {
-			return world.state;
-		};
-
-		var startRace = function() {
-			_.each(world.state.players, Player.startRace);
-		};
-
-		var processUpdate = function(update) {
-			setEvents(update.step, update.events);
-			_.each(update.metrics || [], processMetricUpdate);
-		};
-
-		var processMetricUpdate = function(metricUpdate) {
-			var player = getPlayer(metricUpdate.id);
-			Player.processMetricUpdate(player, metricUpdate);
-		};
-
-		return {
-			data: world,
-			controls: {
-				addPlayer: Player.addPlayer,
-				getPlayer: getPlayer,
-				getPlayers: getPlayers,
-				removePlayer: removePlayer,
-				addEvent: addEvent,
-				setEvents: setEvents,
-				getEvents: getEvents,
-				updateLastControls: Player.updateLastControls,
-				stepWorld: stepWorld,
-				setPlayerControlsAtStep: setPlayerControlsAtStep,
-				setStateAt: setStateAt,
-				processUpdate: processUpdate,
-				getState: getState
-			},
-			admin: {
-				startRace: startRace
-			}
-		};
-	};
-
-	return {
-		createWorld: createWorld
-	};
-};
-
-var exports = exports || {};
-exports.World = facerace.World;
+		_.extend(world, {
+			step: step,
+			writeMessages: writeMessages,
+			readMessages: readMessages,
+			getWorldState: getWorldState,
+			loadFrom: loadFrom
+		});
+		return world;
+	})();
+})();

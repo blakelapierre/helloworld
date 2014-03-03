@@ -1,3 +1,11 @@
+var facerace = facerace || {},
+	exports = exports || {};
+
+if (typeof require === 'function' || window.require) {
+	_ = require('underscore');
+	vec3 = require('../js/lib/gl-matrix-min.js').vec3;
+}
+
 (function() {
 	var createState = function() {
 		return {
@@ -227,4 +235,6 @@
 			setStateAtStep: setStateAtStep
 		});
 	};
+
+	facerace.Player = exports.Player;
 })();

@@ -1,7 +1,9 @@
-var facerace = facerace || {};
+var facerace = facerace || {},
+	exports = exports || {};
+
 if (typeof require === 'function' || window.require) {
 	_ = require('underscore');
-	vec3 = require('../js/lib/js-matrix-min.js').vec3;
+	vec3 = require('../js/lib/gl-matrix-min.js').vec3;
 	facerace.Player = require('../game/player.js').Player;
 }
 
@@ -40,7 +42,7 @@ if (typeof require === 'function' || window.require) {
 		return course;
 	};
 
-	exports.World = (function(options) {
+	exports.World = function(options) {
 		options = options || {};
 
 		var world = {},
@@ -146,9 +148,9 @@ if (typeof require === 'function' || window.require) {
 				predictStep: state.predictStep,
 				start: state.start,
 				course: getCourse(1),
-				playerMap: _.map(state.players, function(player {
+				playerMap: _.map(state.players, function(player) {
 					return player.id;
-				},
+				}),
 				players: _.map(state.players, function(player) {
 					return {
 						state: player.state,
@@ -184,11 +186,14 @@ if (typeof require === 'function' || window.require) {
 
 		_.extend(world, {
 			step: step,
+			state: state,
 			writeMessages: writeMessages,
 			readMessages: readMessages,
 			getWorldState: getWorldState,
 			loadFrom: loadFrom
 		});
 		return world;
-	})();
+	};
+
+	facerace.World = exports.World;
 })();

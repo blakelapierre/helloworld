@@ -52,7 +52,7 @@ var faceraceClient = (function() {
 	};
 
 	var startGame = function(url, controls, graphics, config) {
-		var simulator = faceraceSimulator(20, {isClient: true, logStates: false}),
+		var simulator = facerace.Simulator(20, {isClient: true, logStates: false}),
 			camera = graphics.camera,
 			scene = graphics.scene,
 			renderer = graphics.renderer,

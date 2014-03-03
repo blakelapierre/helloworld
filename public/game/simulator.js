@@ -1,4 +1,5 @@
-var facerace = {};
+var facerace = facerace || {},
+	exports = exports || {};
 if (typeof require === 'function' || window.require) {
 	_ = require('underscore');
 	facerace.World = require('../game/world.js').World;
@@ -7,13 +8,13 @@ if (typeof require === 'function' || window.require) {
 
 (function() {
 
-	exports.Simulator = (function(options) {
+	exports.Simulator = function(options) {
 		options = options || {};
 
 		options.stepSize = options.stepSize || 20;
 
 		var simulator = {},
-			world = options.world || new facerace.World(options.worldConfig),
+			world = options.world || facerace.World(options.worldConfig),
 			inMQ = [],
 			messageHandler = options.messageHandler || function(msg) { console.log('world msg:', msg); };
 
@@ -23,7 +24,7 @@ if (typeof require === 'function' || window.require) {
 		
 			var currentStep = Math.floor((now - world.state.start) / options.stepSize);
 
-			World.receiveMessageQueue(world, inMQ);
+			world.writeMessages(inMQ);
 			while(currentStep < world.state.step) {
 				sendOutgoingMessages(World.step(world));
 			}
@@ -49,6 +50,10 @@ if (typeof require === 'function' || window.require) {
 			});
 		};
 
+		var removePlayer = function(id) {
+
+		};
+
 		var loadWorld = function(worldConfig) {
 			world.loadFrom(worldConfig);
 		};
@@ -61,5 +66,7 @@ if (typeof require === 'function' || window.require) {
 			removePlayer: removePlayer
 		});
 		return simulator;
-	})();
+	};
+
+	facerace.Simulator = exports.Simulator;
 })();

@@ -18,7 +18,7 @@ exports.startServer = function(config, callback) {
 	var stepSize = 20;
 
 	var games = [],
-		simulator = require('./public/game/simulator.js').simulator({
+		simulator = require('./public/game/simulator.js').Simulator({
 			stepSize: stepSize,
 			worldConfig: {
 				predict: false,
@@ -59,11 +59,13 @@ exports.startServer = function(config, callback) {
 
 		console.log(socket.id, 'connected');
 
-		socket.send('games', _.map(games, function(game) {
-			return {
-				id: game.id,
-				numPlayers: game.clients.length
-			}
+		socket.send('games', {
+			games: _.map(games, function(game) {
+				return {
+					id: game.id,
+					numPlayers: game.clients.length
+				};
+			})
 		});
 
 		var player;

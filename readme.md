@@ -46,4 +46,4 @@ oh yeah, I somehow messed up badly and master is the the latest code (the "rewri
 
 
 
-Coming up...where we are going, perspectives and more
+Coming up...[where we are going](https://github.com/blakelapierre/research), perspectives and more

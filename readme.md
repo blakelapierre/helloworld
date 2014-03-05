@@ -15,6 +15,8 @@ Real-time arcade/cart-style multiplayer racing game where you race your face aga
     bower install
 
 
+Then play:
+
     grunt default (to start server and launch Chrome (Win only (I think) right now, sorry))
 
 or

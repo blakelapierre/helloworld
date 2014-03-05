@@ -7,6 +7,8 @@ Real-time arcade/cart-style multiplayer racing game where you race your face aga
     git clone https://github.com/BlakeLaPierre/facerace.git
 
     cd facerace
+    
+    git checkout rewrite
 
     npm install
 

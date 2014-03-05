@@ -1,17 +1,23 @@
 Where we are: Face Race
+=======================
 
 Real-time arcade/cart-style multiplayer racing game where you race your face against all the other faces on the Internet (or at least your race/game/match)
 
-git clone https://github.com/BlakeLaPierre/facerace.git
-cd facerace
-npm install
-bower install
 
-grunt default (to start server and launch Chrome (Win only (I think) right now, sorry))
+    git clone https://github.com/BlakeLaPierre/facerace.git
+
+    cd facerace
+
+    npm install
+
+    bower install
+
+
+    grunt default (to start server and launch Chrome (Win only (I think) right now, sorry))
 
 or
 
-grunt startServer (to just start the server)
+    grunt startServer (to just start the server)
 
 
 Todo: 

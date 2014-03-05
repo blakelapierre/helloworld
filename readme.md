@@ -42,7 +42,7 @@ Todo:
 Extremely likely to be Android/Chrome only right now.
 
 
-oh yeah, I somehow messed up badly and master is the the latest code (the "rewrite") and the rewrite branch is the old (partially working (you have to go farther back for the multiplayer)) code. someone please fix!! I'm not that good at git yet, so once I figure out how to do it, if it's still a problem, I'll fix it
+oh yeah, I somehow messed up badly and master is the the latest code (the "rewrite") and the rewrite branch is the old (partially working (you have to go farther back for the (mostly functioning) multiplayer)) code. someone please fix!! I'm not that good at git yet, so once I figure out how to do it, if it's still a problem, I'll fix it
 
 
 

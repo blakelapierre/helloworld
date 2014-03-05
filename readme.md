@@ -1,7 +1,7 @@
 Where we are: Face Race
 =======================
 
-Real-time arcade/cart-style multiplayer racing game where you race your face against all the other faces on the Internet (or at least your race/game/match) oh, and all in your browser...anywhere
+3D realtime multiplayer cart-racing game where you race your face *in the browser* or *on your phone* against the other faces on the Internet (or at least in your current race)
 
 
     git clone https://github.com/BlakeLaPierre/facerace.git

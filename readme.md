@@ -53,4 +53,4 @@ oh yeah, I somehow messed up badly and master is the the latest code (the "rewri
 Coming up...[where we are going](https://github.com/blakelapierre/research), perspectives and more
 
 
-#OccupyNodeJS - Bootstrapping The New Economy
+&#35;OccupyNodeJS - Bootstrapping The New Economy

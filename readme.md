@@ -1,6 +1,8 @@
 Where we are: Face Race
 =======================
 
+**Coming up:** Continuous integration -> dev play-test server
+
 3D realtime multiplayer cart-racing game where you race your face *in the browser* or *on your phone* against the other faces on the Internet (or at least in your current race)
 
 

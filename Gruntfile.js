@@ -12,7 +12,7 @@ module.exports = function(grunt) {
 				bg: false
 			},
 			startClient: {
-				cmd: 'start http://localhost:3006'
+				cmd: 'xdg-open http://localhost:3006'
 			}
 		}
 	});

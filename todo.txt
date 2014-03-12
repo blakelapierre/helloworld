@@ -7,3 +7,20 @@ items
 courses
 x faces
 tilt controls
+
+
+
+
+* Communication is fucked up somewhere, I think the client sim isn't getting the new players (not intentional; somewhere in the git history is a working multiplayer version (although I think it stutters occasionally))
+
+* Actual racing...all you can do right now is drive/float around
+
+* Items...boosts...teleports...launchers...shrinkers...traps...anything cool
+
+* Sound recording (very, very early code in) - to be played during the game in response to various events (item uses, etc.)
+
+* When a player brings in a persistent item or effect, everyone in that game benefits (maybe, we have an item that is associated with a certain set of powerups, and those powerups only appear in the game if someone is using that item)
+
+* Probably will want to support world-wide (but also regional/localized...we still have the speed of light (presumably) to deal with) match making, right now you run your own setup -- rooms? lobbies? skill/interest-based matching?
+
+* Racers get some quantity for racing and/or their performance, this quantity can be divided and traded to obtain persistent items or traded among the racers

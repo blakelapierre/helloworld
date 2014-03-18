@@ -4,20 +4,30 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: pkg,
 		bgShell: {
-			_defaults: {
-				bg: true
-			},
-			startServer: {
-				cmd: 'node server.js',
-				bg: false
-			},
-			startClient: {
-				cmd: 'xdg-open http://localhost:3006'
+		    _defaults: {
+			    bg: true
+		    },
+		    startServer: {
+			    cmd: 'node server.js',
+			    bg: false
+		    },
+		    startClient: {
+			    cmd: 'xdg-open http://localhost:3006'
+		    }
+		},
+		jsbeautifier: {
+		    files: ['server.js', 'public/game/**/*.js', 'public/js/facerace/**/*.js'],
+			options: {
+				js: {
+					indentChar: ' ',
+					indentSize: 4
+				}
 			}
 		}
 	});
 
 	grunt.loadNpmTasks('grunt-bg-shell');
+	grunt.loadNpmTasks('grunt-jsbeautifier');
 
 	grunt.registerTask('default' , '', function(numberClients) {
 		numberClients = numberClients || 1;

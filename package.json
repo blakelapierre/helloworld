@@ -11,7 +11,8 @@
   "devDependencies": {
     "grunt": "latest",
     "grunt-bg-shell": "latest",
-    "grunt-jsbeautifier": "~0.2.6"
+    "grunt-jsbeautifier": "~0.2.6",
+    "grunt-git": "~0.2.6"
   },
   "author": "Blake La Pierre"
 }

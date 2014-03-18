@@ -15,6 +15,14 @@ module.exports = function(grunt) {
 			    cmd: 'xdg-open http://localhost:3006'
 		    }
 		},
+        gitpull: {
+            facerace: {
+                options: {
+                    remote: 'origin',
+                    branch: 'master'
+                }
+            }
+        },
 		jsbeautifier: {
 		    files: ['server.js', 'public/game/**/*.js', 'public/js/facerace/**/*.js'],
 			options: {
@@ -27,6 +35,7 @@ module.exports = function(grunt) {
 	});
 
 	grunt.loadNpmTasks('grunt-bg-shell');
+    grunt.loadNpmTasks('grunt-git');
 	grunt.loadNpmTasks('grunt-jsbeautifier');
 
 	grunt.registerTask('default' , '', function(numberClients) {
@@ -37,4 +46,8 @@ module.exports = function(grunt) {
 		}
 		grunt.task.run('bgShell:startServer');
 	});
+    
+    grunt.registerTask('localDeploy', '', function() {
+        grunt.task.run('gitpull:facerace');
+    });
 };

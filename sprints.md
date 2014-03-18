@@ -18,6 +18,8 @@ Stories:
             x commit -> push to github (run hooks.sh ... is there a way to make this executable by default?)
             
             push to github -> deploy to dev-test server (http://107.170.237.209:3006)
+                
+                watchmen project to watch for github events (https://github.com/blakelapierre/watchmen)
 
     Players:
 

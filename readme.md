@@ -54,4 +54,4 @@ Extremely likely to be Android/Chrome only right now.
 Coming up...[where we are going](https://github.com/blakelapierre/research), [perspectives](https://github.com/blakelapierre/perspectives), [more](https://github.com/blakelapierre)...
 
 
-#OccupyNodeJS - Bootstrapping The New Economy
+&#35;OccupyNodeJS - Bootstrapping The New Economy

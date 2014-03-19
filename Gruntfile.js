@@ -49,5 +49,6 @@ module.exports = function(grunt) {
     
     grunt.registerTask('localDeploy', '', function() {
         grunt.task.run('gitpull:facerace');
+        grunt.task.run('bgShell:startServer');
     });
 };

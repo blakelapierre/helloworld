@@ -1,75 +1,59 @@
-var facerace = facerace || {},
-    exports = exports || {};
+var facerace = facerace || {};
 if (typeof require === 'function' || window.require) {
-    _ = require('underscore');
-    facerace.World = require('../game/world.js').World;
-}
+	_ = require('underscore');
+	vec3 = require('../js/lib/gl-matrix-min.js').vec3;
+	facerace.Player = require('../game/player.js').Player;
+	facerace.World = require('../game/world.js').World;
+};
 
+var faceraceSimulator = (function() {
+	return function(stepSize, options) {
+		options = options || {};
 
-(function() {
+		var dt = stepSize / 1000,
+			nextWorldID = 0;
 
-    exports.Simulator = function(options) {
-        options = options || {};
+		var simulator = {
+			nextWorldID: 0,
+			stepSize: stepSize,
+			dt: dt,
+			isClient: !!options.isClient
+		};
 
-        options.stepSize = options.stepSize || 20;
+		var World = facerace.World(simulator, options);
+			w = World.createWorld(),
+			worldControls = w.controls,
+			world = w.data,
+			adminControls = w.admin;
 
-        var simulator = {},
-            world = options.world || facerace.World(options.worldConfig),
-            inMQ = [],
-            messageHandler = options.messageHandler || function(msg) {
-                console.log('world msg:', msg);
-            };
+		var setPlayerControls = function(id, controls) {
+			var now = new Date().getTime(),
+				currentStep = Math.floor((now - world.state.start) / stepSize);
 
+			worldControls.setPlayerControlsAtStep(id, controls, currentStep);
+		};
 
-        var stepWorldToNow = function(now) {
-            now = now || new Date().getTime();
+		var runWorldToNow = function() {
+			var now = new Date().getTime(),
+				currentStep = Math.floor((now - world.state.start) / stepSize);
 
-            var currentStep = Math.floor((now - world.state.start) / options.stepSize);
+			while (world.state.predictStep < currentStep) worldControls.stepWorld();
+		};
 
-            world.writeMessages(inMQ);
-            while (currentStep < world.state.step) {
-                sendOutgoingMessages(World.step(world));
-            }
-        };
-
-        var sendOutgoingMessages = function(messages) {
-            messageHandler(messages);
-        };
-
-        var receiveMessage = function(message) {
-            inMQ.push(message);
-        };
-
-        var getWorld = function() {
-            return world;
-        };
-
-        var addPlayer = function(playerConfig, callback) {
-            inMQ.push({
-                type: 'addPlayer',
-                config: playerConfig,
-                callback: callback
-            });
-        };
-
-        var removePlayer = function(id) {
-
-        };
-
-        var loadWorld = function(worldConfig) {
-            world.loadFrom(worldConfig);
-        };
-
-        _.extend(simulator, {
-            getWorld: getWorld,
-            stepWorldToNow: stepWorldToNow,
-            receiveMessage: receiveMessage,
-            addPlayer: addPlayer,
-            removePlayer: removePlayer
-        });
-
-        return simulator;
-    };
-
-    facerace.Simulator = exports.Simulator;
+		return {
+			world: world,
+			worldControls: worldControls,
+			adminControls: adminControls,
+			addPlayer: worldControls.addPlayer,
+			removePlayer: worldControls.removePlayer,
+			getPlayer: worldControls.getPlayer,
+			setPlayerControls: setPlayerControls,
+			setPlayerControlsAtStep: worldControls.setPlayerControlsAtStep,
+			runWorldToNow: runWorldToNow,
+			updateLastControls: worldControls.updateLastControls
+		};
+	};
 })();
+
+var exports = exports || {};
+exports.simulator = faceraceSimulator;

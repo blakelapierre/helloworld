@@ -1,240 +1,297 @@
-var facerace = facerace || {},
-    exports = exports || {};
 
-if (typeof require === 'function' || window.require) {
-    _ = require('underscore');
-    vec3 = require('../js/lib/gl-matrix-min.js').vec3;
-}
+var facerace = facerace || {};
+facerace.Player = function(world, options) {
+	var getNextPlayerID = function() {
+		return world.state.nextPlayerID++;
+	};
 
-(function() {
-    var createState = function() {
-        return {
-            step: 0,
-            effects: [],
-            vehicle: {
-                name: 'cloud',
-                speed: 200,
-                boostSpeed: 250,
-                turnSpeed: Math.PI
-            },
-            metrics: {
-                position: [0, 0, 0],
-                velocity: [0, 0, 0],
-                acceleration: [0, 0, 0],
-                orientation: [-90, 0, 0], // should we use radians? (yes)
-                directionVector: [0, 1, 0],
-                direction: 0,
-            }
-        };
-    };
+	var addPlayer = function() {
+		var player = arguments[0];
+		if (typeof player !== 'object') {
+			var name = player || 'NO NAME!',
+				image = arguments[1] || '/images/faces/default.png';
 
-    var createMeta = function(options) {
-        return {
-            name: options.name,
-            face: options.face,
-            latency: 0
-        };
-    };
+			player = {
+				name: name,
+				state: {
+					step: 0,
+					effects: [],
+					vehicle: {
+						name: 'cloud',
+						speed: 200,
+						boostSpeed: 250,
+						turnSpeed: Math.PI
+					},
+					lastControlsReceivedStep: 0,
+					controlsChangedLastStep: true,
+					controls: {
+						step: 0,
+						turn: 0,
+						up: false,
+						down: false,
+					},
+					metrics: {
+						position: 		vec3.clone(world.state.course.startPosition),
+						velocity: 		[0, 0, 0],
+						acceleration: 	[0, 0, 0],
+						orientation:	[-90, 0, 0],
+						directionVector:[0, 1, 0],
+						direction:		0,
+					}
+				},
+				controlsHistory: {'0':{turn: 0}},
+				face: image,
+				scale: 4,
+				pingStart: 0,
+				latency: 0,
+				lastControlsUpdate: {
+					step: 0,
+					acceleration: vec3.create(0, 0, 0),
+					velocity: vec3.create(0, 0, 0),
+					position: vec3.create(0, 0, 0),
+					orientation: vec3.create(0, 0, 0),
+					direction: 0,
+					directionVector: vec3.create(0, 0, 0),
+					controls: {
+						step: 0,
+						left: false,
+						up: false,
+						right: false,
+						down: false,
+						space: false,
+						turn: 0
+					}
+				}
+			};
 
-    var applyStateUpdate = function(state, update) {
-        var s = state,
-            u = update;
+			updateLastControls(player);
+		}
 
-        if (s.step != u.step) throw "applying invalid update!";
+		if (!!options.isClient) {
+			player.prediction = JSON.parse(JSON.stringify(player.state));
+		}
 
-        s.effects = u.effects;
+		player.id = getNextPlayerID();
+		world.state.playerMap[player.id] = world.state.players.length;
+		world.state.players.push(player);
 
-        applyVehicleUpdate(state.vehicle, u.vehicle);
-        applyMetricsUpdate(state.metrics, u.metrics);
-    };
+		return player;
+	};
 
-    var applyMetricsUpdate = function(metrics, update) {
-        var m = metrics,
-            u = update;
+	var dt = world.info.dt,
+		stepSize = world.info.stepSize;
 
-        vec3.copy(m.acceleration, u.acceleration);
-        vec3.copy(m.velocity, u.velocity);
-        vec3.copy(m.position, u.position);
-        vec3.copy(m.orientation, u.orientation);
-        vec3.copy(m.directionVector, u.directionVector);
+	var updateState = (function() {
+		var acceleration = vec3.create(),
+			stepAcceleration = vec3.create(),
+			velocity = vec3.create(),
+			position = vec3.create(),
+			stepVelocity = vec3.create(),
+			directionVector = vec3.create(),
+			previousDirection = vec3.create(),
+			vehicleSpeed = 0,
+			speed = 0,
+			direction = 0,
+			stepTurn = 0;
 
-        m.direction = u.direction;
-    };
+		return function(state, player) {
+			var controls = state.controls,
+				vehicle = state.vehicle,
+				metrics = state.metrics,
+				
+				vehicleAcceleration = vehicle.speed,
+				boostAcceleration = vehicle.boostSpeed,
+				turnSpeed = vehicle.turnSpeed;
+			
+			state.step++;
 
-    exports.Player = function(world, options) {
-        var player = {},
-            state = createState(),
-            meta = createMeta(),
-            predictedState = null,
-            controlsHistory = [],
-            stateUpdates = [],
-            lastReceivedControlsStep = 0;
+			state.controls = controls = getCurrentControls(player, state);
 
-        options = options || {};
+			stepTurn = 0;
+			turn = controls.turn;
+			direction = metrics.direction;
+			
+			vec3.copy(velocity, metrics.velocity);
+			vec3.set(acceleration, 0, 0, 0);					
 
-        var id = options.id,
-            isServer = !! options.isServer,
-            predict = !! options.predict;
+			speed = vec3.length(velocity);
 
-        if (predict) predictedState = createState();
+			if (turn > Math.PI) turn -= 2 * Math.PI;
+			stepTurn += turn * turnSpeed;
+			stepTurn *= dt;
 
+			direction += stepTurn;
+			vec3.set(directionVector, Math.sin(direction), Math.cos(direction), 0);
+			vec3.normalize(directionVector, directionVector);
 
-        var step = function(world) {
-            var worldStep = world.state.step,
-                predictStep = world.state.predictStep,
-                stateUpdated = false;
+			var acc = 0;
+			if (controls.space) acc += boostAcceleration;
+			if (controls.up) acc += vehicleAcceleration;
+			if (controls.down) acc = -vehicleAcceleration;
+			
+			// acceleration -> velocity -> position
+			vec3.scale(acceleration, directionVector, acc);
+			vec3.scale(stepAcceleration, acceleration, dt);
+			vec3.add(velocity, velocity, stepAcceleration);
 
-            while (state.step < worldStep && state.step < lastReceivedControlsStep) {
-                var nextStep = state.step + 1,
-                    controls = getControlsAtStep(nextStep);
+			speed = vec3.length(velocity);
 
-                if (!isServer) {
-                    var stateUpdate = stateUpdates[nextStep]
+			// Apply friction
+			vec3.scale(velocity, velocity, (1 - dt) * (1 - world.state.course.friction));
 
-                    if (stateUpdate) {
-                        applyStateUpdate(stateUpdate, state);
-                        delete stateUpdates[nextStep];
-                    }
-                }
+			// If we get too slow, we just stop
+			speed = vec3.length(velocity);
+			var accelerationMagnitude = vec3.length(acceleration);
+			
+			if (accelerationMagnitude == 0 && speed < 0.5) {
+				vec3.set(velocity, 0, 0, 0);
+				speed = 0;
+			}
 
-                updateState(state, controls);
+			vec3.scale(stepVelocity, velocity, dt);
 
-                if (nextStep > 1) delete controlsHistory[nextStep - 1]
-                stateUpdated = true;
-            }
+			vec3.add(metrics.position, metrics.position, stepVelocity);
 
-            if (predict) {
-                if (stateUpdated) resetPredictedState();
+			if (speed > 0) vec3.normalize(previousDirection, metrics.velocity);
+			else previousDirection = directionVector;
 
-                while (predictedState.step < predictStep) {
-                    var nextStep = predictedState.step + 1,
-                        controls = getControlsAtStep(nextStep);
+			vec3.copy(metrics.directionVector, directionVector);
+			vec3.copy(metrics.acceleration, acceleration);
+			vec3.copy(metrics.velocity, velocity);
 
-                    updateState(predictedState, controls);
-                }
-            }
-        };
+			metrics.direction = direction;
+			metrics.speed = speed;
 
-        var updateState = (function() {
-            var acceleration = vec3.create(),
-                stepAcceleration = vec3.create(),
-                velocity = vec3.create(),
-                position = vec3.create(),
-                stepVelocity = vec3.create(),
-                directionVector = vec3.create(),
-                previousDirection = vec3.create(),
-                vehicleSpeed = 0,
-                speed = 0,
-                direction = 0,
-                stepTurn = 0;
+			metrics.orientation[1] = metrics.direction / Math.PI * 180;
+		};
+	})();
 
-            return function(state, controls) {
-                var vehicle = state.vehicle,
-                    metrics = state.metrics,
+	var getCurrentControls = function(player, state) {
+		var step = state.step,
+			controls = player.controlsHistory[step];
 
-                    vehicleAcceleration = vehicle.speed,
-                    boostAcceleration = vehicle.boostSpeed,
-                    turnSpeed = vehicle.turnSpeed;
+		if (controls == null) {
+			controls = player.controlsHistory[step - 1] || player.controlsHistory[0];
+			player.controlsHistory[step] = controls;
+		}
 
-                state.step++;
+		if (step > 50) delete player.controlsHistory[step - 50];
 
-                stepTurn = 0;
-                turn = controls.turn;
-                direction = metrics.direction;
+		//console.log(step, controls);
 
-                vec3.copy(velocity, metrics.velocity);
-                vec3.set(acceleration, 0, 0, 0);
+		return controls;
+	};
 
-                speed = vec3.length(velocity);
+	var updatePlayer = function(player) {
+		var step = world.state.step;
 
-                if (turn > Math.PI) turn -= 2 * Math.PI;
-                stepTurn += turn * turnSpeed;
-                stepTurn *= dt;
+		player.state.controlsChangedLastStep = false;
+		while (player.state.step < step && player.state.step < player.state.lastControlsReceivedStep) {
+			updateState(player.state, player);
+			player.state.controlsChangedLastStep = true;
+		}
 
-                direction += stepTurn;
-                vec3.set(directionVector, Math.sin(direction), Math.cos(direction), 0);
-                vec3.normalize(directionVector, directionVector);
+		if (!!options.isClient && player.state.controlsChangedLastStep) {
+			resetPrediction(player);
+		}
+	};
 
-                var acc = 0;
-                if (controls.space) acc += boostAcceleration;
-                if (controls.up) acc += vehicleAcceleration;
-                if (controls.down) acc = -vehicleAcceleration;
+	var predictPlayer = function(player) {
+		var step = world.state.predictStep;
 
-                // acceleration -> velocity -> position
-                vec3.scale(acceleration, directionVector, acc);
-                vec3.scale(stepAcceleration, acceleration, dt);
-                vec3.add(velocity, velocity, stepAcceleration);
+		while (player.prediction.step < step) {
+			updateState(player.prediction, player);
+		}
+	};
 
-                speed = vec3.length(velocity);
+	var resetPrediction = function(player) {
+		var s = player.state,
+			p = player.prediction,
+			sm = s.metrics,
+			pm = p.metrics;
 
-                // Apply friction
-                vec3.scale(velocity, velocity, (1 - dt) * (1 - world.state.course.friction));
+		p.step = s.step;
+		
+		vec3.copy(pm.acceleration, sm.acceleration);
+		vec3.copy(pm.velocity, sm.velocity);
+		vec3.copy(pm.position, sm.position);
+		vec3.copy(pm.orientation, sm.orientation);
+		vec3.copy(pm.directionVector, sm.directionVector);
 
-                // If we get too slow, we just stop
-                speed = vec3.length(velocity);
-                var accelerationMagnitude = vec3.length(acceleration);
+		pm.direction = sm.direction;
+	};
 
-                if (accelerationMagnitude == 0 && speed < 0.5) {
-                    vec3.set(velocity, 0, 0, 0);
-                    speed = 0;
-                }
+	var updateLastControls = function(player) {
+		var last = player.lastControlsUpdate,
+			state = player.state,
+			controls = state.controls,
+			metrics = state.metrics;
 
-                vec3.scale(stepVelocity, velocity, dt);
+		last.step = player.state.step;
+		vec3.copy(last.acceleration, metrics.acceleration);
+		vec3.copy(last.velocity, metrics.velocity);
+		vec3.copy(last.position, metrics.position);
+		vec3.copy(last.orientation, metrics.orientation);
+		vec3.copy(last.directionVector, metrics.directionVector);
 
-                vec3.add(metrics.position, metrics.position, stepVelocity);
+		last.direction = metrics.direction;
 
-                if (speed > 0) vec3.normalize(previousDirection, metrics.velocity);
-                else previousDirection = directionVector;
+		_.extend(last.controls, controls);
+	};
 
-                vec3.copy(metrics.directionVector, directionVector);
-                vec3.copy(metrics.acceleration, acceleration);
-                vec3.copy(metrics.velocity, velocity);
+	var resetPlayer = function(player) {
+		var last = player.lastControlsUpdate,
+			state = player.state,
+			controls = state.controls,
+			metrics = state.metrics;
+		
+		player.state.step = last.step;
 
-                metrics.direction = direction;
-                metrics.speed = speed;
+		vec3.copy(metrics.acceleration, last.acceleration);
+		vec3.copy(metrics.velocity, last.velocity);
+		vec3.copy(metrics.position, last.position);
+		vec3.copy(metrics.orientation, last.orientation);
+		vec3.copy(metrics.directionVector, last.directionVector);
 
-                metrics.orientation[1] = metrics.direction / Math.PI * 180;
-            };
-        })();
+		metrics.direction = last.direction;
+	};
 
-        var resetPredictedState = function() {
-            var s = state,
-                p = predictedState,
-                sm = s.metrics,
-                pm = p.metrics;
+	var setPlayerControls = function(player, controls) {
+		var now = now || new Date().getTime(),
+			currentStep = currentStep || Math.floor((now - world.state.start) / stepSize);
 
-            p.step = s.step;
-            applyMetricsUpdate(pm, sm);
-        };
+		setPlayerControlsAtStep(player, controls, currentStep);
+	};
 
-        var getControlsAtStep = function(step) {
-            if (step > lastReceivedControlsStep) return controlsHistory[lastReceivedControlsStep];
-            return controlsHistory[step];
-        };
+	var setControlsAtStep = function(player, controls, step) {
+		player.controlsHistory[step] = _.clone(controls);
+		player.state.lastControlsReceivedStep = step;
+	};
 
-        var setControlsAtStep = function(controls, step) {
-            controlsHistory[step] = controls;
-        };
+	var getPlayer = function(id) {
+		var index = world.state.playerMap[id];
+		return world.state.players[index];
+	};
 
-        var setStateAtStep = function(state, step) {
-            stateUpdates[step] = state;
-        };
+	var startRace = function(player, i) {
+		var metrics = player.state.metrics,
+			startPosition = world.state.course.startPosition;
 
-        var loadFrom = function(config) {
-            state = config.state;
-            meta = config.meta;
-            if (predict) resetPredictedState();
-        };
+		vec3.set(metrics.position, startPosition[0], startPosition[1] + 10 * i, startPosition[2]);
+		vec3.set(metrics.acceleration, 0, 0, 0);
+		vec3.set(metrics.velocity, 0, 0, 0);
+	};
 
-        _.extend(player, {
-            id: id,
-            state: state,
-            meta: meta,
-            predictedState: predictedState,
-            setControlsAtStep: setControlsAtStep,
-            setStateAtStep: setStateAtStep
-        });
-    };
+	return {
+		getPlayer: getPlayer,
+		addPlayer: addPlayer,
+		updatePlayer: updatePlayer,
+		predictPlayer: predictPlayer,
+		setControlsAtStep: setControlsAtStep,
+		updateLastControls: updateLastControls,
+		startRace: startRace
+	};
+};
 
-    facerace.Player = exports.Player;
-})();
+var exports = exports || {};
+exports.Player = facerace.Player;

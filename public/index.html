@@ -16,8 +16,6 @@
 	<script type="text/javascript" src="/js/lib/gestures.js"></script>
 	<script type="text/javascript" src="/js/lib/smoothie.1.19.js"></script>
 	<script type="text/javascript" src="/js/lib/recorder.js"></script>
-<!--	<script type="text/javascript" src="/bower_components/jsondiffpatch/jsondiffpatch.min.js"></script>
-	<script type="text/javascript" src="/bower_components/jsondiffpatch/src/jsondiffpatch.html.js"></script>-->
 
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 
@@ -30,8 +28,6 @@
 	<script type="text/javascript" src="/js/facerace/app.js"></script>
 	<script type="text/javascript" src="/js/facerace/facerace.js"></script>
 	<script type="text/javascript" src="/js/facerace/debug.js"></script>
-	<script type="text/javascript" src="/js/facerace/debug/diff.js"></script>
-	<script type="text/javascript" src="/js/facerace/debug/diffViewerWrapper.js"></script>
 	<script type="text/javascript" src="/js/facerace/scene/scene.js"></script>
 	<script type="text/javascript" src="/js/facerace/input/camera.js"></script>
 	<script type="text/javascript" src="/js/facerace/input/microphone.js"></script>
@@ -44,7 +40,6 @@
 	
 	<link rel="stylesheet" href="/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="/css/jsoneditor-min.css" />
-<!--	<link rel="stylesheet" href="/bower_components/jsondiffpatch/src/jsondiffpatch.html.css" />-->
 	<link rel="stylesheet" href="/css/facerace.css" />
 </head>
 <body>
@@ -85,10 +80,6 @@
 		<camera show-camera="showCamera" face-data="faceData"></camera>
 
 		<microphone show-microphone="showMicrophone"></microphone>
-
-		<div id="diffViewer" ng-class="{'show-overlay': diffViewerVisible, 'overlay': true}">
-			<diff-viewer states="stateLog"></diff-viewer>
-		</div>
 		
 		<div id="configPanel" ng-class="{'show-config': configVisible}" class="config-panel">
 			<div object-editor object="debugObject"></div>
@@ -108,7 +99,7 @@
 			<div id="calibrate" hm-tap="calibrate()">Calibrate</div>
 			<div id="brake" class="brake" ng-click="brake()"></div>
 		</div>
-		<div class="latency-overlay">
+		<div class="overlay">
 			<span>{{metrics.latency}} ms</span>
 		</div>
 	</facerace>

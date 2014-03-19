@@ -1,160 +1,144 @@
 var express = require('express'),
-    fs = require('fs'),
-    log = require('./log.js').Log();
+	fs = require('fs');
 
 exports.startServer = function(config, callback) {
     var app = express(),
-        port = config.server.port;
+		port = config.server.port;
 
-    app.use(express.static(__dirname + '/public'));
+	app.use(express.static(__dirname + '/public'));
 
-    app.get('/', function(req, res) {});
+	app.get('/', function(req, res) {});
 
-    var webserver = app.listen(port),
-        io = require('socket.io').listen(webserver);
+	var webserver = app.listen(port),
+		io = require('socket.io').listen(webserver);
 
-    io.set('log level', 0);
+	io.set('log level', 0);
 
-    var stepSize = 20;
-
-    var games = [],
-        simulator = require('./public/game/simulator.js').Simulator({
-            stepSize: stepSize,
-            worldConfig: {
-                predict: false,
-                isClient: false
-            },
-            messageHandler: function(messages) {
-                _.each(messages, function(message) {
-                    switch (message.type) {
-                        case 'callback':
-                            message.callback();
-                            break;
-                    }
-                    // if (message.playerID != null) { // could be 0!
-                    // 	var socket = game.clientMap[message.playerID];
-                    // 	socket.emit(message);
-                    // }
-                    // else {
-                    // 	io.sockets.emit(message);
-                    // }
-                });
-            }
-        }),
-        world = simulator.getWorld(),
-        nextGameID = 0;
-
-    var game = {
-        id: nextGameID++,
-        simulator: simulator,
-        world: world,
-        clients: [],
-        clientMap: {}
-    };
-
-    games.push(game);
-
-    io.sockets.on('connection', function(socket) {
-        game.clients.push(socket);
-
-        console.log(socket.id, 'connected');
-
-        // 	socket.send('games', {
-        // 	    games: _.map(games, function(game) {
-        // 		return {
-        // 		    id: game.id,
-        // 		    numPlayers: game.clients.length
-        // 		};
-        // 	    })
-        // 	});
-
-        var player;
-        socket.on('join', function(data) {
-            simulator.addPlayer(data, function(p) {
-                socket.player = player = p;
-                game.clientMap[p.id] = socket;
-                socket.emit('world', {
-                    playerID: player.id,
-                    world: world.getWorldState(),
-                    currentTime: new Date().getTime()
-                });
-            });
-        });
-
-        socket.on('face', function(data) {
-            // possible race condition with 'join' above!
-            var base64Data = data.image.replace(/^data:image\/png;base64,/, ""),
-                fileName = __dirname + '/public/images/faces/' + player.id + '.png';
-
-            fs.writeFile(fileName, base64Data, 'base64', function(err) {
-                if (err) console.log(err);
-            });
-            io.sockets.emit('face', {
-                playerID: player.id,
-                face: '/images/faces/' + player.id + '.png'
-            });
-        });
-
-        socket.on('disconnect', function() {
-            game.clients.splice(game.clients.indexOf(socket), 1);
-
-            if (socket.player) {
-                console.log('removed', socket.player.meta.name);
-                simulator.removePlayer(socket.player);
-                delete game.clientMap[socket.player.id];
-                delete socket.player;
-            }
-            delete io.sockets.socket[socket.id];
-        });
-
-        socket.on('ping', function() {
-            socket.emit('pong', {
-                time: new Date().getTime()
-            });
-        });
-
-        socket.on('pong', function() {
-            var now = new Date().getTime();
-            player.meta.latency = now - socket.pingStart;
-        });
-    });
+	var simulator = require('./public/game/simulator.js').simulator(20),
+	    world = simulator.world;
 
 
-    var stateUpdateRate = stepSize * 5,
-        pingRate = stepSize * 5;
+	var id = 0,
+	    clients = [];
 
-    setInterval(function() {
-        simulator.stepWorldToNow();
+	io.sockets.on('connection', function(socket) {
+	    clients.push(socket);
 
-        var update = {
-            step: world.state.step
-        };
+	    socket.send(socket.id);
+	    console.log(id++, socket.id);
 
-        if (world.state.step % stateUpdateRate == 0) {
-            update.state = simulator.getWorld().getWorldState();
-        }
+	    var player;
+	    socket.on('joinGame', function(data) {
+	        socket.player = player = simulator.addPlayer(data.name, data.image);
+	        simulator.runWorldToNow();
+	        sendWorld('welcome');
+	        socket.broadcast.emit('newPlayer', {player: player});
+	        socket.sendWorld = sendWorld;
+	        simulator.adminControls.startRace();
+	    });
 
-        io.sockets.emit('update', update);
+	    socket.on('controls', function(data) {
+	    	simulator.worldControls.addEvent(simulator.world.state.step + 1, {type: 'controls', id: socket.player.id, controls: data.controls});
+	    	socket.broadcast.emit('controls', {id: socket.player.id, controls: data.controls});
+	    });
 
-        if (world.state.step % pingRate == 0) {
-            var now = new Date().getTime();
+	    socket.on('setFace', function(data) {
+	        var base64Data = data.image.replace(/^data:image\/png;base64,/,""),
+	        	fileName = __dirname + '/public/images/faces/' + player.id + '.png';
 
-            _.each(game.clients, function(socket) {
-                socket._pingStart = now;
-            });
-            io.sockets.emit('ping');
-        }
-    }, stepSize);
+	        console.log('Writing new face', fileName);
+	        fs.writeFile(fileName, base64Data, 'base64', function(err) {
+	        	if (err) console.log(err);
+	        });
+	        io.sockets.emit('faceChange', {playerID: player.id, face: '/images/faces/' + player.id + '.png'});
+	    });
 
-    log.info('Listening on' + port);
+	    socket.on('disconnect', function() {
+	        clients.splice(clients.indexOf(socket), 1);
 
-    return callback(webserver, io);
+	        if (socket.player) {
+	        	console.log('removed', socket.player.name);
+	        	simulator.removePlayer(socket.player.id);
+	        	delete socket.player;
+	        }
+	        
+	        delete io.sockets.socket[socket.id];
+	    });
+
+	    socket.on('ping', function() {
+	    	socket.emit('pong', {time: new Date().getTime()});
+	    });
+
+	    socket.on('pong', function() {
+	    	var now = new Date().getTime();
+	    	player.latency = now - player.pingStart;
+	    });
+
+	    var sendWorld = function(name) {
+	        socket.emit(name || 'world', {
+	            socketID: socket.id,
+	            world: world,
+	            playerID: socket.player ? socket.player.id : null,
+	            currentTime: new Date().getTime()
+	        });
+	    };
+
+	    socket.sendWorld = function() {};
+	});
+
+	var start = null;
+	setInterval(function() {
+	    if (start == null) start = new Date().getTime();
+	    
+	    var update = {
+	    	step: world.state.step,
+	    	events: simulator.worldControls.getEvents()
+	    };
+
+	    if (world.state.step % 40 == 0) {
+	    	update.positions = _.map(simulator.worldControls.getPlayers(), function(player) {
+	    		return {
+	    			position: player.state.metrics.position,
+	    			direction: player.state.metrics.direction
+	    		};
+	    	});
+	    }
+
+	    io.sockets.emit('update', update);
+
+	    simulator.runWorldToNow();
+
+
+
+	    if (world.step % 100 == 0) {
+		    for (var i = 0; i < clients.length; i++) {
+		    	var client = clients[i];
+		    	client.sendWorld();
+		    }
+		}
+
+	    if (world.step % 100 == 0) {
+	        var now = new Date().getTime();
+
+	        _.each(clients, function(client) {
+	        	if (client.player) client.player.pingStart = now;
+	        });
+
+	        io.sockets.emit('ping');
+	    }
+	}, 20);
+
+	console.log('Listening on ' + port);
+
+	return callback(webserver, io);
 };
 
 var config = {
-    server: {
-        port: 3006
-    }
+	server: {
+		port: 3006
+	}
 };
 
-exports.startServer(config, function(webserver, io) {});
+exports.startServer(config, function(webserver, io) {
+
+});

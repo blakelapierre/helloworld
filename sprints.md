@@ -19,7 +19,9 @@ Stories:
             
             x push to github -> deploy to dev-test server (http://107.170.237.209:3006)
                 
-                x watchmen project to watch for github events (https://github.com/blakelapierre/watchmen)
+                watchmen project to watch for github events (https://github.com/blakelapierre/watchmen)
+                
+                    experiment some more with this...it should be much more powerful
                 
                 having some issues with permissions while loading dependencies (need to rethink)
                 

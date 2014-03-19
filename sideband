@@ -11,3 +11,5 @@ interesting off-by-1 error with updates to the Gruntfile.js. Probably an easy fi
 last watchmen test seemed good enough, let's try this one again
 
 ^^^^sideband is editable. good thing or we might have confused it with the last message. this test will take at least two commits...standby
+
+expected that. now let's try the second one.

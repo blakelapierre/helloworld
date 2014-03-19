@@ -21,8 +21,14 @@ Stories:
                 
                 x watchmen project to watch for github events (https://github.com/blakelapierre/watchmen)
                 
-            game should be more than a black screen that wants access to your mic
+                having some issues with permissions while loading dependencies (need to rethink)
+                
+            x game should be more than a black screen that wants access to your mic
 
+            game should actually be in sync
+            
+                needs an in-depth look with refreshed eyes
+            
     Players:
 
         Anything

@@ -12,7 +12,8 @@
     "grunt": "latest",
     "grunt-bg-shell": "latest",
     "grunt-jsbeautifier": "~0.2.6",
-    "grunt-git": "~0.2.6"
+    "browserify": "~3.33.0",
+    "grunt-browserify": "~2.0.1"
   },
   "author": "Blake La Pierre"
 }

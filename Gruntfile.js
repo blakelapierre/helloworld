@@ -14,29 +14,11 @@ module.exports = function(grunt) {
 		    startClient: {
 			    cmd: 'xdg-open http://localhost:3006'
 		    }
-		},
-        gitpull: {
-            facerace: {
-                options: {
-                    remote: 'origin',
-                    branch: 'master'
-                }
-            }
-        },
-		jsbeautifier: {
-		    files: ['server.js', 'public/game/**/*.js', 'public/js/facerace/**/*.js'],
-			options: {
-				js: {
-					indentChar: ' ',
-					indentSize: 4
-				}
-			}
 		}
 	});
 
 	grunt.loadNpmTasks('grunt-bg-shell');
-    grunt.loadNpmTasks('grunt-git');
-	grunt.loadNpmTasks('grunt-jsbeautifier');
+	grunt.loadNpmTasks('grunt-browserify'); // look into this
 
 	grunt.registerTask('default' , '', function(numberClients) {
 		numberClients = numberClients || 1;

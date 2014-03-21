@@ -1,14 +1,13 @@
-_.each([
-	'./hud/messageArea.js',
-	'./hud/orientationMetrics.js',
-	'./hud/vehicleInstrumentation.js',
-	'./input/camera.js',
-	'./input/microphone.js',
-	'./input/playerController.js',
-	'./input/userMediaService.js',
-	'./scene/scene.js',
-	'./debug.js',
-	'./facerace.js'
-], require);
+
+	require('./hud/messageArea.js');
+	require('./hud/orientationMetrics.js');
+	require('./hud/vehicleInstrumentation.js');
+	require('./input/camera.js');
+	require('./input/microphone.js');
+	require('./input/playerController.js');
+	require('./input/userMediaService.js');
+	require('./scene/scene.js');
+	require('./debug.js');
+	require('./facerace.js');
 
 module.exports = angular.module('facerace', ['angular-gestures', 'faceraceDebug']);

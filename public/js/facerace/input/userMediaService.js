@@ -1,3 +1,5 @@
+// I think I found this somewhere. If you find the source let me know: blakelapierre@gmail.com
+
 angular.module('facerace')
 .service('userMediaService', function() {
 	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
@@ -44,12 +46,29 @@ angular.module('facerace')
 		});
 	};
 
+	var getVideo = function(sourceID, config) {
+		var video = document.createElement('video');
+
+		_.extend(video, {
+			width: 320,
+			height: 240,
+			autoplay: true	
+		}, config);
+
+		getVideoStream(sourceID, function(stream) {
+			video.src = $sce.trustAsResourceUrl(window.URL.createObjectURL(stream));
+		});
+
+		return video;
+	};
+
 	_.extend(this, {
 		getUserMedia: getUserMedia,
 		getSourceByKind: getSourceByKind,
 		getVideoSources: getVideoSources,
 		getAudioSources: getAudioSources,
 		getVideoStream: getVideoStream,
-		getRecorder: getRecorder
+		getRecorder: getRecorder,
+		getVideo: getVideo
 	});
 });

@@ -30,6 +30,8 @@ Stories:
             
         perspectives (https://github.com/blakelapierre/perspectives)
 
+            in-game video? it's coming
+        
         game should actually be in sync
             
             needs an in-depth look with refreshed eyes

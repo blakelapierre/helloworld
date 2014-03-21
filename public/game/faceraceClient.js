@@ -245,10 +245,16 @@ var faceraceClient = (function() {
 			else {
 				//graphics.camera.position.set(target.position.x, target.position.y, 1000);
 			}
+
+
+			if (webcam.readyState == webcam.HAVE_ENOUGH_DATA) {
+				webcam.texture.needsUpdate = true;
+			}
 			
 			renderer.render(scene, camera);
 
 			stats.update();
+
 			window.requestAnimationFrame(step);
 
 			fire('tick', world.state.predictStep);
@@ -306,7 +312,13 @@ var faceraceClient = (function() {
 
 		var createPlayerObject = function(simulatorPlayer) {
 			// var pObject = createPlane(THREE.ImageUtils.loadTexture(simulatorPlayer.face), 5, 5, true);
-			var pObject = createPlane(new THREE.Texture( webcam ));
+			console.log('webcam', webcam);
+			var texture = new THREE.Texture( webcam ),
+				pObject = createPlane(texture, 5, 5, true);
+
+			webcam.texture = texture;	
+
+			texture.needsUpdate = true;
 
 			pObject.particleGroup = new SPE.Group({
 				texture: THREE.ImageUtils.loadTexture('/images/particles/smokeparticle.png'),

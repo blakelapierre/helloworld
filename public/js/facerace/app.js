@@ -1,4 +1,4 @@
-
+/*
 	require('./hud/messageArea.js');
 	require('./hud/orientationMetrics.js');
 	require('./hud/vehicleInstrumentation.js');
@@ -9,5 +9,5 @@
 	require('./scene/scene.js');
 	require('./debug.js');
 	require('./facerace.js');
-
-module.exports = angular.module('facerace', ['angular-gestures', 'faceraceDebug']);
+*/
+/*module.exports = */angular.module('facerace', ['angular-gestures', 'faceraceDebug']);

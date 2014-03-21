@@ -72,3 +72,5 @@ setup your ssh key && git remote set-url origin git@github.com:username/project.
 ok...quick commit -> push to github two keystrokes away from where you were just coding is risky
 
 installed the grunt plugin, but it doesn't work for me. i have the facerace project and watchmen projects in my workspace right now, grunt asks what file i want to use and then disappears...thanks...now running "shell command": sh + enter + grunt + enter
+
+more child process problems...my sublime text 3 shell plugins don't seem to terminate when i get back from a grunt run...there is a bug in face race right now where when you refresh the page it's just black

@@ -304,8 +304,8 @@ var faceraceClient = (function() {
 		};
 
 		var createPlayerObject = function(simulatorPlayer) {
-			var pObject = createPlane(THREE.ImageUtils.loadTexture(simulatorPlayer.face), 5, 5, true);
-			//var pObject = createPlane(new THREE.Texture( document.createElement('webcam') ));
+			// var pObject = createPlane(THREE.ImageUtils.loadTexture(simulatorPlayer.face), 5, 5, true);
+			var pObject = createPlane(new THREE.Texture( document.createElement('webcam') ));
 
 			pObject.particleGroup = new SPE.Group({
 				texture: THREE.ImageUtils.loadTexture('/images/particles/smokeparticle.png'),

@@ -68,3 +68,5 @@ back running on sublime text 3 + package control + git
 this should be much faster
 
 setup your ssh key && git remote set-url origin git@github.com:username/project.git
+
+ok...quick commit -> push to github two keystrokes away from where you were just coding is risky

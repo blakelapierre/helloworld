@@ -76,3 +76,5 @@ installed the grunt plugin, but it doesn't work for me. i have the facerace proj
 more child process problems...my sublime text 3 shell plugins don't seem to terminate when i get back from a grunt run...there is a bug in face race right now where when you refresh the page it's just black
 
 no time to figure out why i can't open up port 3006 on my local network
+
+kickstarting watchmen

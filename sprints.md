@@ -27,6 +27,8 @@ Stories:
                         very powerful now (commit -> new deployment and/or update existing deployment), can be exponentially more powerful in the future
                 
             x game should be more than a black screen that wants access to your mic
+            
+        perspectives (https://github.com/blakelapierre/perspectives)
 
         game should actually be in sync
             

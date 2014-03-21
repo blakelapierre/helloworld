@@ -28,7 +28,7 @@ angular.module('facerace')
 	var getAudioSources = _.partial(getSourceByKind, 'audio', 'Microphone #');
 
 	var getVideoStream = function(sourceID, success, error) {
-		getUserMedia({video: {optional: [{sourceId: sourceID}]}}, success, error);
+		getUserMedia({video: sourceID == null ? true : {optional: [{sourceId: sourceID}]}}, success, error);
 	};
 
 	var getAudioStream = function(sourceID, success, error) {

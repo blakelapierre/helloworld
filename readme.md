@@ -1,3 +1,6 @@
+All commits to this project are deployed to http://107.170.237.209:3006/ within seconds of the commit thanks to [WATCHMEN](https://github.com/blakelapierre/watchmen)
+
+
 Where we are: Face Race
 =======================
 

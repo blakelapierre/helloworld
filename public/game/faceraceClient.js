@@ -70,7 +70,8 @@ var faceraceClient = (function() {
 			playerID = null,
 			playerIndex = null,
 			oldControls = {},
-			startTime = new Date().getTime();
+			startTime = new Date().getTime(),
+			webcam = config.webcam;
 
 		var getWorld = function() { return simulator.world; };
 
@@ -305,7 +306,7 @@ var faceraceClient = (function() {
 
 		var createPlayerObject = function(simulatorPlayer) {
 			// var pObject = createPlane(THREE.ImageUtils.loadTexture(simulatorPlayer.face), 5, 5, true);
-			var pObject = createPlane(new THREE.Texture( document.createElement('webcam') ));
+			var pObject = createPlane(new THREE.Texture( webcam ));
 
 			pObject.particleGroup = new SPE.Group({
 				texture: THREE.ImageUtils.loadTexture('/images/particles/smokeparticle.png'),

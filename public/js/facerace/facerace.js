@@ -1,11 +1,14 @@
 angular.module('facerace')
-.directive('facerace', function() {
+.directive('facerace', function(userMediaService) {
 	return {
 		restrict: 'E',
 		link: function($scope, element, attributes) { },
 		controller:  ['$scope', function($scope) {
 			var controls = {turn: 0, quaternion: [0, 0, 0, 1]},
-				config = {camera: {}},
+				config = {
+					camera: {},
+					webcam: userMediaService.getVideo()
+				},
 				calibration = null;
 			
 			this.setClient = function(client) {

@@ -12,6 +12,7 @@ Mid-Sprint Goal: Positive cashflow
 Stories:
 
     Developers:
+        [ongoing] Rob and Blake chat
 
         [good enough] Commit -> play on dev-test server
 
@@ -26,8 +27,6 @@ Stories:
                         very powerful now (commit -> new deployment and/or update existing deployment), can be exponentially more powerful in the future
                 
             x game should be more than a black screen that wants access to your mic
-            
-        Rob and Blake chat (as soon as we can, hopefully today (Thu March 20))
 
         game should actually be in sync
             

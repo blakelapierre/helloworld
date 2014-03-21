@@ -1,7 +1,7 @@
 // I think I found this somewhere. If you find the source let me know: blakelapierre@gmail.com
 
 angular.module('facerace')
-.service('userMediaService', ['$sce', function($sce) {
+.service('userMediaService', function() {
 	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 	window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
 
@@ -56,7 +56,7 @@ angular.module('facerace')
 		}, config);
 
 		getVideoStream(sourceID, function(stream) {
-			video.src = $sce.trustAsResourceUrl(window.URL.createObjectURL(stream));
+			video.src = window.URL.createObjectURL(stream);
 		});
 
 		return video;
@@ -71,4 +71,4 @@ angular.module('facerace')
 		getRecorder: getRecorder,
 		getVideo: getVideo
 	});
-}]);
+});

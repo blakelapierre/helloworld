@@ -57,6 +57,8 @@ angular.module('facerace')
 
 		getVideoStream(sourceID, function(stream) {
 			video.src = window.URL.createObjectURL(stream);
+			video.load();
+			video.play();
 			console.log('url', video.src);
 		}, function(error) {
 			console.log('error', error);

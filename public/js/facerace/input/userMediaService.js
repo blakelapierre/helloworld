@@ -1,7 +1,7 @@
 // I think I found this somewhere. If you find the source let me know: blakelapierre@gmail.com
 
 angular.module('facerace')
-.service('userMediaService', function() {
+.service('userMediaService', function($sce) {
 	navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 	window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
 

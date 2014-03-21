@@ -48,6 +48,7 @@ angular.module('facerace')
 
 	var getVideo = function(sourceID, config) {
 		var video = document.createElement('video');
+		document.body.appendChild(video);
 
 		_.extend(video, {
 			width: 320,
@@ -55,7 +56,10 @@ angular.module('facerace')
 			autoplay: true	
 		}, config);
 
+		console.log('getting video');
+
 		getVideoStream(sourceID, function(stream) {
+			console.log('got stream!');
 			video.src = window.URL.createObjectURL(stream);
 			video.load();
 			video.play();

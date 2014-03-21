@@ -123,7 +123,7 @@ var faceraceClient = (function() {
 
 			player.controls = controls;
 
-			var course = createPlane(sourceWorld.state.course.image, sourceWorld.state.course.size[0], sourceWorld.state.course.size[1]);
+			var course = createPlane(THREE.ImageUtils.loadTexture(sourceWorld.state.course.image), sourceWorld.state.course.size[0], sourceWorld.state.course.size[1]);
 			course.position.set(50, 50, 0);
 			course.up.set(1, 0, 0);
 			scene.add(course);
@@ -304,7 +304,8 @@ var faceraceClient = (function() {
 		};
 
 		var createPlayerObject = function(simulatorPlayer) {
-			var pObject = createPlane(simulatorPlayer.face, 5, 5, true);
+			var pObject = createPlane(THREE.ImageUtils.loadTexture(simulatorPlayer.face), 5, 5, true);
+			//var pObject = createPlane(new THREE.Texture( document.createElement('webcam') ));
 
 			pObject.particleGroup = new SPE.Group({
 				texture: THREE.ImageUtils.loadTexture('/images/particles/smokeparticle.png'),
@@ -329,14 +330,13 @@ var faceraceClient = (function() {
 			return pObject;
 		};
 
-		var createPlane = function(imageUrl, width, height, swirl) {
+		var createPlane = function(texture, width, height, swirl) {
 			swirl = swirl ? '-swirl' : '';
-			var map = THREE.ImageUtils.loadTexture(imageUrl),
-				material = new THREE.ShaderMaterial({
+			var material = new THREE.ShaderMaterial({
 					fragmentShader: document.getElementById('plane-fragment-shader' + swirl).textContent,
 					vertexShader: document.getElementById('plane-vertex-shader' + swirl).textContent,
 					uniforms: {
-						texture: {type: 't', value: map},
+						texture: {type: 't', value: texture},
 						width: {type: 'f', value: width},
 						height: {type: 'f', value: height},
 						radius: {type: 'f', value: 10},
@@ -348,8 +348,8 @@ var faceraceClient = (function() {
 				}),
 				mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 				
-			map.anisotropy = renderer.getMaxAnisotropy();
-			mesh._imageUrl = imageUrl;
+			texture.anisotropy = renderer.getMaxAnisotropy();
+			
 			return mesh;
 		};
 

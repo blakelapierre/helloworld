@@ -6,5 +6,9 @@
 	"dependencies": {
 		"express": "latest",
 		"socket.io": "latest"
+	},
+	"devDependencies": {
+		"grunt": "latest",
+		"grunt-bg-shell": "latest"
 	}
 }

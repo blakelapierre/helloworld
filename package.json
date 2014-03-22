@@ -2,5 +2,8 @@
 	"name": "facerace",
 	"version": "0.0.1",
 	"description": "3D multiplayer racing in your browser",
-	"author": "Blake La Pierre"
+	"author": "Blake La Pierre",
+	"dependencies": {
+		"express": "latest"
+	}
 }

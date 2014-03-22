@@ -4,6 +4,7 @@
 	"description": "3D multiplayer racing in your browser",
 	"author": "Blake La Pierre",
 	"dependencies": {
-		"express": "latest"
+		"express": "latest",
+		"socket.io": "latest"
 	}
 }

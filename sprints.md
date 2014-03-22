@@ -169,7 +169,9 @@ Stories:
             
         perspectives (https://github.com/blakelapierre/perspectives)
 
-            in-game video? it's coming
+            x in-game video? it's here
+
+            this doesn't work at all right now
         
         game should actually be in sync
             

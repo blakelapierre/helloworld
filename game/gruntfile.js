@@ -7,6 +7,9 @@ module.exports = function(grunt) {
 			_defaults: {
 				bg: true
 			},
+			browserify: {
+				cmd: 'browserify public/js/facerace.js > public/js/bundle.js'
+			},
 			startServer: {
 				cmd: 'node server.js',
 				bg: false
@@ -25,10 +28,11 @@ module.exports = function(grunt) {
 		for (var i = 0; i < numberClients; ++i) {
 			grunt.task.run('bgShell:startClient');
 		}
-		grunt.task.run('bgShell:startServer');
+		grunt.task.run('serve');
 	});
 
 	grunt.registerTask('serve', 'test', function() {
+		grunt.task.run('bgShell:browserify');
 		grunt.task.run('bgShell:startServer');
 	});
 };

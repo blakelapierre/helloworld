@@ -10,8 +10,8 @@
   "devDependencies": {
     "grunt": "latest",
     "grunt-bg-shell": "latest",
-    "browserify": "~3.33.0",
-    "browserify-shim": "~3.3.2"
+    "browserify": "lastest",
+    "browserify-shim": "latest"
   },
   "browserify": {
   	"transform": ["browserify-shim"]

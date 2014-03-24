@@ -1,14 +1,23 @@
 {
-	"name": "facerace",
-	"version": "0.0.1",
-	"description": "3D multiplayer racing in your browser",
-	"author": "Blake La Pierre",
-	"dependencies": {
-		"express": "latest",
-		"socket.io": "latest"
-	},
-	"devDependencies": {
-		"grunt": "latest",
-		"grunt-bg-shell": "latest"
-	}
+  "name": "facerace",
+  "version": "0.0.1",
+  "description": "3D multiplayer racing in your browser",
+  "author": "Blake La Pierre",
+  "dependencies": {
+    "express": "latest",
+    "socket.io": "latest"
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-bg-shell": "latest",
+    "browserify": "~3.33.0",
+    "browserify-shim": "~3.3.2"
+  },
+  "browserify": {
+  	"transform": ["browserify-shim"]
+  },
+  "browserify-shim": {
+  	"angular": "global:angular",
+  	"three": "global:THREE"
+  }
 }

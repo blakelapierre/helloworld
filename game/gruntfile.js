@@ -27,4 +27,8 @@ module.exports = function(grunt) {
 		}
 		grunt.task.run('bgShell:startServer');
 	});
+
+	grunt.registerTask('serve', 'test', function() {
+		grunt.task.run('bgShell:startServer');
+	});
 };

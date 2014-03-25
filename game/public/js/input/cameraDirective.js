@@ -19,7 +19,9 @@ module.exports = function CameraDirective() {
 				$scope.peers.push(peer);
 
 				$scope.$apply(function() {
-					rtc.attachStream(stream, 'peer-video-' + peer.id);
+					var id = 'peer-video-' + peer.id.toString();
+					console.log(id);
+					rtc.attachStream(stream, id);
 				});
 			});
 		}

@@ -6,7 +6,7 @@ Sprint 0
 
 Goal: Transition Rob (where do you want to go next?)
 
-Mid-Sprint Goal: [~] Positive cashflow [Christian Bundy, DaVinci, CrashOverrideCS]
+Mid-Sprint Goal: [~] Positive cashflow [Christian Bundy, DaVinci, CrashOverrideCS, Ravi]
 
 Stories:
 

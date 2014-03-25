@@ -6,7 +6,7 @@ module.exports = function CameraDirective() {
 		template: require('./cameraTemplate.html'),
 		link: function($scope, element, attributes) {
 			$scope.peers = [];
-			
+
 			rtc.createStream({video: true, audio: true}, function(stream) {
 				rtc.attachStream(stream, 'local-video');
 			});
@@ -18,7 +18,7 @@ module.exports = function CameraDirective() {
 				var peer = {id: $scope.peers.length};
 				$scope.peers.push(peer);
 
-				$scope.apply(function() {
+				$scope.$apply(function() {
 					rtc.attachStream(stream, 'peer-video-' + peer.id);
 				});
 			});

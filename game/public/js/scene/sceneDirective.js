@@ -33,8 +33,8 @@ module.exports = function SceneDirective() {
 			stats.domElement.style.top = '0px';
 
 			var resize = function() {
-				var height = element.height(),
-					width = element.width();
+				var height = element.innerHeight,
+					width = element.innerWidth;
 					
 				renderer.setSize(width, height);
 				camera.aspect = width / height;

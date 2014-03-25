@@ -26,6 +26,7 @@
   	"angular": "global:angular",
   	"three": "global:THREE",
     "stats": "global:Stats",
-    "webrtc.io": "./node_modules/webrtc.io-client/lib/webrtc.io.js"
+    "webrtc.io": "global:rtc",
+    "socket.io": "global:io"
   }
 }

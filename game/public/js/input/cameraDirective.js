@@ -15,7 +15,10 @@ module.exports = function CameraDirective() {
 
 			rtc.on('add remote stream', function(stream, socketID) {
 				console.log(stream, socketID);
-				var peer = {id: $scope.peers.length};
+				var peer = {
+					id: $scope.peers.length,
+					stream: stream
+				};
 				$scope.peers.push(peer);
 
 				$scope.$apply();
@@ -26,7 +29,7 @@ module.exports = function CameraDirective() {
 					var peer = $scope.peers[i];
 					if (peer.video == null) {
 						peer.video = 'peer-video-' + peer.id.toString();
-						rtc.attachStream(stream, peer.video);
+						rtc.attachStream(peer.stream, peer.video);
 					}
 				}
 			});

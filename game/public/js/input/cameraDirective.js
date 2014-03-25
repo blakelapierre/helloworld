@@ -24,7 +24,7 @@ module.exports = function CameraDirective() {
 				$scope.$apply();
 			});
 
-			$scope.$watch('peers', function(newValue) {
+			$scope.$watchCollection('peers', function(newValue) {
 				for (var i = 0; i < $scope.peers.length; i++) {
 					var peer = $scope.peers[i];
 					if (peer.video == null) {

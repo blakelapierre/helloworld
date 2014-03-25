@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd game
+npm install
+grunt serve

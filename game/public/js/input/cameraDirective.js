@@ -26,7 +26,7 @@ module.exports = function CameraDirective() {
 					var peer = $scope.peers[i];
 					if (peer.video == null) {
 						peer.video = 'peer-video-' + peer.id.toString();
-						rtc.attachStream(stream);
+						rtc.attachStream(stream, peer.video);
 					}
 				}
 			});

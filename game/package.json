@@ -27,6 +27,7 @@
   	"three": "global:THREE",
     "stats": "global:Stats",
     "webrtc.io": "global:rtc",
-    "socket.io": "global:io"
+    "socket.io": "global:io",
+    "underscore": "global:_"
   }
 }

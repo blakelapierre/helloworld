@@ -1,6 +1,7 @@
-var angular = require('angular');
+var angular = require('angular'),
+	_ = require('underscore');
 
-module.exports = function CameraDirective() {
+module.exports = function CameraDirective($sce) {
 	return {
 		restrict: 'E',
 		template: require('./cameraTemplate.html'),
@@ -8,7 +9,8 @@ module.exports = function CameraDirective() {
 			$scope.peers = [];
 
 			rtc.createStream({video: true, audio: true}, function(stream) {
-				rtc.attachStream(stream, 'local-video');
+				$scope.localStreamSource = $sce.trustAsResourceUrl(URL.createObjectURL(stream));
+				$scope.$apply();
 			});
 
 			rtc.connect('ws://' + window.location.hostname + ':3007', 'facerace');
@@ -16,7 +18,7 @@ module.exports = function CameraDirective() {
 			rtc.on('add remote stream', function(stream, socketID) {
 				var peer = {
 					socketID: socketID,
-					stream: stream
+					streamSource: $sce.trustAsResourceUrl(URL.createObjectURL(stream))
 				};
 				$scope.peers.push(peer);
 
@@ -33,16 +35,6 @@ module.exports = function CameraDirective() {
 				}
 				$scope.peers.splice(index, 1);
 				$scope.$apply();
-			});
-
-			$scope.$watchCollection('peers', function(newValue) {
-				for (var i = 0; i < $scope.peers.length; i++) {
-					var peer = $scope.peers[i];
-					if (peer.video == null) {
-						peer.video = 'peer-video-' + peer.socketID;
-						setTimeout(function() {rtc.attachStream(peer.stream, peer.video)}, 100);
-					}
-				}
 			});
 		}
 	};	

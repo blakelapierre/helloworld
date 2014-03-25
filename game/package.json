@@ -15,7 +15,10 @@
     "partialify": "latest"
   },
   "browserify": {
-  	"transform": ["browserify-shim"]
+  	"transform": [
+  		"browserify-shim",
+  		"partialify"
+  	]
   },
   "browserify-shim": {
   	"angular": "global:angular",

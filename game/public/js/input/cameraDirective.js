@@ -5,7 +5,7 @@ module.exports = function CameraDirective() {
 		restrict: 'E',
 		template: require('./cameraTemplate.html'),
 		link: function($scope, element, attributes) {
-			rtc.connect('ws://' + window.location.hostname + ':3007');
+			rtc.connect('ws://' + window.location.hostname + ':3007', 'facerace');
 
 			rtc.createStream({video: true, audio: true}, function(stream) {
 				rtc.attachStream(stream, 'local-video');

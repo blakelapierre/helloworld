@@ -92,3 +92,5 @@ restarted WATCHMEN so it picks up the new branch
 log debugging..fun
 
 first time?
+
+still has a global dependency on browserify..and probably others

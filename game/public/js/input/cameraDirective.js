@@ -18,7 +18,7 @@ module.exports = function CameraDirective() {
 				var peer = {id: $scope.peers.length};
 				$scope.peers.push(peer);
 
-				$scope.$apply(function() {
+				$scope.$digest(function() {
 					var id = 'peer-video-' + peer.id.toString();
 					console.log(id);
 					rtc.attachStream(stream, id);

@@ -5,7 +5,8 @@
   "author": "Blake La Pierre",
   "dependencies": {
     "express": "latest",
-    "socket.io": "latest"
+    "socket.io": "latest",
+    "webrtc.io": "latest"
   },
   "devDependencies": {
     "grunt": "latest",

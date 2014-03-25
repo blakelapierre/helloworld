@@ -10,6 +10,7 @@ module.exports = function SceneDirective() {
 				height = window.innerHeight,
 				scene = new THREE.Scene(),
 				renderer = new THREE.WebGLRenderer({antialias: true}),
+				camera = new THREE.PerspectiveCamera(60, width / height, 1, 5000),
 				stats = new Stats();
 
 			element.append(renderer.domElement);
@@ -22,7 +23,7 @@ module.exports = function SceneDirective() {
 			// camera = new facerace.DriveCamera(60, 1.0 /*width / height*/, 1, 5000, null, config.camera),
 
 
-			// camera.up.set(0, 0, 1);
+			camera.up.set(0, 0, 1);
 
 			scene.add(new THREE.AmbientLight(0xffffff));
 
@@ -36,11 +37,18 @@ module.exports = function SceneDirective() {
 					width = element.width();
 					
 				renderer.setSize(width, height);
-				// camera.aspect = width / height;
-				// camera.updateProjectionMatrix();
+				camera.aspect = width / height;
+				camera.updateProjectionMatrix();
 			};
 
 			window.addEventListener('resize', resize, false);
+
+			var render = function() {
+				renderer.render(scene, camera);
+				stats.update();
+				window.requestAnimationFrame(render);
+			};
+			window.requestAnimationFrame(render);
 		}
 	};
 };

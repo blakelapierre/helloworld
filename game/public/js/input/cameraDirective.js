@@ -11,7 +11,8 @@ module.exports = function CameraDirective() {
 				rtc.attachStream(stream, 'local-video');
 			});
 
-			rtc.on('add remote stream', function(stream) {
+			rtc.on('add remote stream', function(stream, socketID) {
+				console.log(stream, socketID);
 				var peer = {id: $scope.peers.length};
 				$scope.peers.push(peer);
 

@@ -29,7 +29,7 @@ module.exports = function CameraDirective() {
 					var peer = $scope.peers[i];
 					if (peer.video == null) {
 						peer.video = 'peer-video-' + peer.id.toString();
-						rtc.attachStream(peer.stream, peer.video);
+						setTimeout(function() {rtc.attachStream(peer.stream, peer.video)}, 100);
 					}
 				}
 			});

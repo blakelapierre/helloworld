@@ -6,7 +6,8 @@
   "dependencies": {
     "express": "latest",
     "socket.io": "latest",
-    "webrtc.io": "latest"
+    "webrtc.io": "latest",
+    "webrtc.io-client": "latest"
   },
   "devDependencies": {
     "grunt": "latest",
@@ -24,6 +25,7 @@
   "browserify-shim": {
   	"angular": "global:angular",
   	"three": "global:THREE",
-    "stats": "global:Stats"
+    "stats": "global:Stats",
+    "webrtc.io": "./node_modules/webrtc.io-client/lib/webrtc.io.js"
   }
 }

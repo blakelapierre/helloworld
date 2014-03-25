@@ -9,7 +9,7 @@ var startServer = function(config, callback) {
 
 	var webserver = app.listen(config.port),
 		//io = socketIO.listen(webserver),
-		rtc = webRTC.listen(webserver);
+		rtc = webRTC.listen(config.rtcport);
 var io;
 	//io.set('log level', 0);
 
@@ -18,5 +18,6 @@ var io;
 
 exports.startServer = startServer;
 exports.startServer({
-	port: 3006
+	port: 3006,
+	rtcport: 3007
 }, function(webserver, io, rtc) {});

@@ -1,4 +1,5 @@
 var angular = require('angular');
 
 module.exports = angular.module('facerace', [])
-	.directive('facerace', require('./faceraceDirective'));
+	.directive('facerace', require('./faceraceDirective'))
+	.directive('scene', require('./scene/sceneDirective'));

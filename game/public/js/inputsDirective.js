@@ -20,7 +20,6 @@ module.exports = function CameraDirective($sce) {
 				};
 			};
 
-			$scope.videoSources = [];
 			$scope.sources = {};
 
 			rtc.createStream({video: true, audio: true}, function(stream) {

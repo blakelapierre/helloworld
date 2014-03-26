@@ -80,7 +80,9 @@ module.exports = function SceneDirective() {
 				});
 
 				_.each(removableKeys, function(removableKey) {
-
+					var videoSource = liveSources[removableKey];
+					scene.remove(videoSource.mesh);
+					delete liveSources[removableKey];
 				});
 			}, true);
 

@@ -39,6 +39,7 @@ module.exports = function CameraDirective($sce) {
 
 			rtc.on('disconnect stream', function(socketID) {
 				delete $scope.sources[socketID];
+				$scope.$apply();
 			});
 		}
 	};	

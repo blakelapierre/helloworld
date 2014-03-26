@@ -29,6 +29,9 @@ module.exports = function SceneDirective() {
 
 			renderer.setSize(width, height);
 
+			renderer.domElement.style.position = 'absolute';
+			renderer.domElement.style.top = '0px';
+
 			stats.domElement.style.position = 'absolute';
 			stats.domElement.style.top = '0px';
 

@@ -1,6 +1,7 @@
 var angular = require('angular'),
 	THREE = require('three'),
-	Stats = require('stats');
+	Stats = require('stats'),
+	_ = require('underscore');
 
 module.exports = function SceneDirective() {
 	return {
@@ -41,10 +42,13 @@ module.exports = function SceneDirective() {
 
 			window.addEventListener('resize', resize, false);
 
-			$scope.$watchCollection('sources', function(newValue, oldValue, whatareyou) {
-				console.log('newValue', newValue);
-				console.log('oldValue', oldValue);
-				console.log('other', whatareyou);
+			$scope.$watchCollection('sources', function(newValue, oldValue, $scope) {
+				var currentKeys = _.keys(newValue),
+					oldKeys = _.keys(oldValue),
+					newKeys = _.difference(currentKeys, oldKeys),
+					removableKeys = _.difference(oldKeys, currentKeys);
+
+				console.log(currentKeys, oldKeys, newKeys, removableKeys);	
 			});
 
 			// $scope.$watchCollection('videoSources', function(currentPeers, oldPeers) {

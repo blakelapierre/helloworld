@@ -61,6 +61,8 @@ module.exports = function SceneDirective() {
 					newKeys = _.difference(currentKeys, oldKeys),
 					removableKeys = _.difference(oldKeys, currentKeys);
 
+				console.log(currentKeys, oldKeys, newKeys, removableKeys);	
+
 				_.each(newKeys, function(newKey) {
 					console.log(newKey);
 					var videoSource = newValue[newKey],

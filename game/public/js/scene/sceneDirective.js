@@ -23,14 +23,20 @@ module.exports = function SceneDirective() {
 
 
 			camera.up.set(0, 1, 0);
-			camera.position.z = 5;
+			camera.position.z = 10;
 
 			scene.add(new THREE.AmbientLight(0xffffff));
 
 			renderer.setSize(width, height);
 
-			renderer.domElement.style.position = 'absolute';
-			renderer.domElement.style.top = '0px';
+			angular.element(renderer.domElement).css({
+				position: 'absolute',
+				top: '0px',
+				left: '0px',
+				width: '100%',
+				height: '100%',
+				overflow: 'hidden'
+			});
 
 			stats.domElement.style.position = 'absolute';
 			stats.domElement.style.top = '0px';
@@ -75,9 +81,6 @@ module.exports = function SceneDirective() {
 						
 					texture.anisotropy = renderer.getMaxAnisotropy();
 
-					mesh.position.x = liveSources.length;
-					mesh.position.y = liveSources.length;
-
 					scene.add(mesh);
 
 					videoSource.mesh = mesh;
@@ -89,6 +92,14 @@ module.exports = function SceneDirective() {
 					var videoSource = liveSources[removableKey];
 					scene.remove(videoSource.mesh);
 					delete liveSources[removableKey];
+				});
+
+				var i = 0;
+				_.each(liveSources, function(videoSource) {
+					var mesh = videoSource.mesh;
+					mesh.position.x = i;
+					mesh.position.y = i;
+					i++;
 				});
 			}, true);
 

@@ -6,17 +6,24 @@ module.exports = function CameraDirective($sce) {
 		restrict: 'E',
 		template: require('./cameraTemplate.html'),
 		link: function($scope, element, attributes) {
-			$scope.peers = [];
+			var createVideo = function(stream) {
+				var video = document.createElement('video');
+				video.src = $sce.trustAsResourceUrl(URL.createObjectURL(stream));
+				video.autoplay = true;
+
+				element.append(video);
+			};
+			$scope.videoSources = [];
 
 			rtc.createStream({video: true, audio: true}, function(stream) {
-				$scope.localStreamSource = $sce.trustAsResourceUrl(URL.createObjectURL(stream));
-				$scope.$apply();
+				createVideo(stream);
 			});
 
 			rtc.connect('ws://' + window.location.hostname + ':3007', 'facerace');
 
 			rtc.on('add remote stream', function(stream, socketID) {
 				var peer = {
+					elementID: 'peer-video-' + socketID,
 					socketID: socketID,
 					streamSource: $sce.trustAsResourceUrl(URL.createObjectURL(stream))
 				};

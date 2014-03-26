@@ -41,8 +41,10 @@ module.exports = function SceneDirective() {
 
 			window.addEventListener('resize', resize, false);
 
-			$scope.$watchCollection('sources', function(newValue, oldValue) {
-				console.log('sources', arguments);
+			$scope.$watchCollection('sources', function(newValue, oldValue, whatareyou) {
+				console.log('newValue', newValue);
+				console.log('oldValue', oldValue);
+				console.log('other', whatareyou);
 			});
 
 			// $scope.$watchCollection('videoSources', function(currentPeers, oldPeers) {

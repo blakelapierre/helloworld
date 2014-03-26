@@ -28,6 +28,7 @@
     "stats": "global:Stats",
     "webrtc.io": "global:rtc",
     "socket.io": "global:io",
-    "underscore": "global:_"
+    "underscore": "global:_",
+    "jQuery": "global:$"
   }
 }

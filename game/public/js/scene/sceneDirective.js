@@ -55,8 +55,8 @@ module.exports = function SceneDirective() {
 					console.log(newKey);
 					var videoSource = newValue[newKey],
 						video = videoSource.element,
-						width = 10,
-						height = 10,
+						width = 1,
+						height = 1,
 						texture = new THREE.Texture(video), 
 						material = new THREE.ShaderMaterial({
 							fragmentShader: document.getElementById('plane-fragment-shader-swirl').textContent,
@@ -71,6 +71,9 @@ module.exports = function SceneDirective() {
 						mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 						
 					texture.anisotropy = renderer.getMaxAnisotropy();
+
+					mesh.position.x = liveSources.length;
+					mesh.position.y = liveSources.length;
 
 					scene.add(mesh);
 

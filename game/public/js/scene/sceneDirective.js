@@ -54,6 +54,7 @@ module.exports = function SceneDirective() {
 
 			$scope.liveSources = {};
 			$scope.$watchCollection('sources', function(newValue, ALSONEWVALUEಠ_ಠ, $scope) {
+				console.log('sources',newValue);
 				var liveSources = $scope.liveSources,
 					currentKeys = _.keys(newValue),
 					oldKeys = _.keys(liveSources),

@@ -21,15 +21,20 @@ module.exports = function CameraDirective($sce) {
 			};
 
 			$scope.videoSources = [];
+			$scope.sources = {};
 
 			rtc.createStream({video: true, audio: true}, function(stream) {
 				$scope.videoSources.push(createVideo(stream));
+				$scope.sources['local'] = {};
+				$scope.$apply();
 			});
 
 			rtc.connect('ws://' + window.location.hostname + ':3007', 'facerace');
 
 			rtc.on('add remote stream', function(stream, socketID) {
 				$scope.videoSources.push(createVideo(stream, socketID));
+				$scope.sources[socketID] = {};
+				$scope.$apply();
 			});
 
 			rtc.on('disconnect stream', function(socketID) {

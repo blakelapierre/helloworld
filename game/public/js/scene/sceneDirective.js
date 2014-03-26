@@ -41,41 +41,45 @@ module.exports = function SceneDirective() {
 
 			window.addEventListener('resize', resize, false);
 
-			$scope.$watchCollection('peers', function(currentPeers, oldPeers) {
-				var checked = {};
-
-				_.each(currentPeers, function(peer) {
-					if (peer.object3D == null) {
-						var width = 1,
-							height = 1,
-							peerVideo = document.getElementById(peer.elementID),
-							texture = new THREE.Texture(peerVideo), 
-							material = new THREE.ShaderMaterial({
-								fragmentShader: document.getElementById('plane-fragment-shader').textContent,
-								vertexShader: document.getElementById('plane-vertex-shader').textContent,
-								uniforms: {
-									texture: {type: 't', value: texture},
-									width: {type: 'f', value: width},
-									height: {type: 'f', value: height}
-								},
-								side: THREE.DoubleSide
-							}),
-							mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
-							
-						texture.anisotropy = renderer.getMaxAnisotropy();
-
-						mesh.position.z = -10;
-						scene.add(mesh);
-						camera.lookAt(mesh);
-
-						peer.object3D = {
-							peerVideo: peerVideo,
-							texture: texture,
-							mesh: mesh
-						};
-					}
-				});
+			$scope.$watchCollection('sources', function(newValue, oldValue) {
+				console.log('sources', arguments);
 			});
+
+			// $scope.$watchCollection('videoSources', function(currentPeers, oldPeers) {
+			// 	var checked = {};
+
+			// 	_.each(currentPeers, function(peer) {
+			// 		if (peer.object3D == null) {
+			// 			var width = 1,
+			// 				height = 1,
+			// 				peerVideo = document.getElementById(peer.elementID),
+			// 				texture = new THREE.Texture(peerVideo), 
+			// 				material = new THREE.ShaderMaterial({
+			// 					fragmentShader: document.getElementById('plane-fragment-shader').textContent,
+			// 					vertexShader: document.getElementById('plane-vertex-shader').textContent,
+			// 					uniforms: {
+			// 						texture: {type: 't', value: texture},
+			// 						width: {type: 'f', value: width},
+			// 						height: {type: 'f', value: height}
+			// 					},
+			// 					side: THREE.DoubleSide
+			// 				}),
+			// 				mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
+							
+			// 			texture.anisotropy = renderer.getMaxAnisotropy();
+
+			// 			mesh.position.z = -10;
+			// 			scene.add(mesh);
+			// 			camera.lookAt(mesh);
+
+			// 			peer.object3D = {
+			// 				peerVideo: peerVideo,
+			// 				texture: texture,
+			// 				mesh: mesh
+			// 			};
+			// 		}
+			// 	});
+			// });
 
 			var render = function() {
 				_.each($scope.peers, function(peer) {

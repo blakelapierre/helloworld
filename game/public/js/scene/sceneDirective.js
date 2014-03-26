@@ -67,8 +67,8 @@ module.exports = function SceneDirective() {
 					console.log(newKey);
 					var videoSource = newValue[newKey],
 						video = videoSource.element,
-						width = 1,
-						height = 1,
+						width = 5,
+						height = 5,
 						texture = new THREE.Texture(video), 
 						material = new THREE.ShaderMaterial({
 							fragmentShader: document.getElementById('plane-fragment-shader-swirl').textContent,

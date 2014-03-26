@@ -32,3 +32,54 @@
 		gl_FragColor = color;
 	}
 </script>
+
+<script id="plane-vertex-shader-swirl" type="x-shader/x-vertex">
+	varying vec2 vUv;
+
+	void main()
+	{
+		vUv = uv;
+		gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+	}
+</script>
+
+<script id="plane-fragment-shader-swirl" type="x-shader/x-fragment">
+	// Scene buffer
+	uniform sampler2D texture; 
+
+	uniform float time;
+
+	uniform float width;
+	uniform float height;
+
+	// Swirl effect parameters
+	uniform float radius;
+	uniform float angle;
+	uniform vec2 center;
+
+	varying vec2 vUv;
+
+	vec4 PostFX(sampler2D texture, vec2 uv, float time)
+	{
+		vec2 texSize = vec2(width, height);
+		vec2 tc = uv * texSize;
+		tc -= center;
+		float dist = length(tc) * 1.5 * sin(time / 70.0);
+		if (dist < radius) 
+		{
+			float percent = (radius - dist) / radius;
+			float theta = percent * percent * angle * 8.0;
+			float s = sin(theta);
+			float c = cos(theta);
+			tc = vec2(dot(tc, vec2(c, -s)), dot(tc, vec2(s, c)));
+		}
+		tc += center;
+		vec3 color = texture2D(texture, tc / texSize).rgb;
+		return vec4(color, 1.0);
+	}
+
+	void main (void)
+	{
+		gl_FragColor = PostFX(texture, vUv, time);
+	}
+</script>

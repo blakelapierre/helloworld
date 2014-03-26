@@ -5,6 +5,7 @@ var angular = require('angular'),
 module.exports = function SceneDirective() {
 	return {
 		restrict: 'E',
+		template: require('./sceneTemplate.html'),
 		link: function($scope, element, attributes) {
 			var width = window.innerWidth,
 				height = window.innerHeight,
@@ -18,9 +19,6 @@ module.exports = function SceneDirective() {
 
 			$scope.scene = scene;
 			$scope.renderer = renderer;
-
-
-			// camera = new facerace.DriveCamera(60, 1.0 /*width / height*/, 1, 5000, null, config.camera),
 
 
 			camera.up.set(0, 0, 1);
@@ -43,7 +41,48 @@ module.exports = function SceneDirective() {
 
 			window.addEventListener('resize', resize, false);
 
+			$scope.$watchCollection('peers', function(currentPeers, oldPeers) {
+				var checked = {};
+
+				_.each(currentPeers, function(peer) {
+					if (peer.object3D == null) {
+						var width = 1,
+							height = 1,
+							peerVideo = document.getElementById(peer.elementID),
+							texture = new THREE.Texture(peerVideo), 
+							material = new THREE.ShaderMaterial({
+								fragmentShader: document.getElementById('plane-fragment-shader').textContent,
+								vertexShader: document.getElementById('plane-vertex-shader').textContent,
+								uniforms: {
+									texture: {type: 't', value: texture},
+									width: {type: 'f', value: width},
+									height: {type: 'f', value: height}
+								},
+								side: THREE.DoubleSide
+							}),
+							mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
+							
+						texture.anisotropy = renderer.getMaxAnisotropy();
+
+						mesh.position.z = -10;
+						scene.add(mesh);
+						camera.lookAt(mesh);
+
+						peer.object3D = {
+							peerVideo: peerVideo,
+							texture: texture,
+							mesh: mesh
+						};
+					}
+				});
+			});
+
 			var render = function() {
+				_.each($scope.peers, function(peer) {
+					if (peer.object3D && peer.object3D.peerVideo.readyState == peer.object3D.peerVideo.HAVE_ENOUGH_DATA) {
+						peer.object3D.texture.needsUpdate = true;
+					}
+				});
 				renderer.render(scene, camera);
 				stats.update();
 				window.requestAnimationFrame(render);

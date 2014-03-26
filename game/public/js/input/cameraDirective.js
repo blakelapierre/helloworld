@@ -4,7 +4,6 @@ var angular = require('angular'),
 module.exports = function CameraDirective($sce) {
 	return {
 		restrict: 'E',
-		template: require('./cameraTemplate.html'),
 		link: function($scope, element, attributes) {
 			var createVideo = function(stream) {
 				var video = document.createElement('video');
@@ -27,9 +26,7 @@ module.exports = function CameraDirective($sce) {
 					socketID: socketID,
 					streamSource: $sce.trustAsResourceUrl(URL.createObjectURL(stream))
 				};
-				$scope.peers.push(peer);
-
-				$scope.$apply();
+				createVideo(stream, socketID);
 			});
 
 			rtc.on('disconnect stream', function(socketID) {

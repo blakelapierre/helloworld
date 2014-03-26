@@ -37,7 +37,7 @@ module.exports = function CameraDirective($sce) {
 				for (var i = 0; i < $scope.videoSources.length; i++) {
 					var source = $scope.videoSources[i];
 					if (source.socketID == socketID) {
-						source.video.remove();
+						source.element.remove();
 						$scope.videoSources.splice(i, 1);
 						break; // get out of here now! :)
 					}

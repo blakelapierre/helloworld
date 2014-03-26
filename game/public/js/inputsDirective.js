@@ -9,7 +9,8 @@ module.exports = function CameraDirective($sce) {
 				var video = document.createElement('video');
 				video.src = $sce.trustAsResourceUrl(URL.createObjectURL(stream));
 				video.autoplay = true;
-
+				video.style.display = 'none';
+				
 				element.append(video);
 
 				return {

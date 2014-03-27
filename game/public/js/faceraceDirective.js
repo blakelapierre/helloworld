@@ -6,7 +6,6 @@ module.exports = function FaceraceDirective () {
 		template: require('./faceraceTemplate.html'),
 		link: function($scope, element, attributes) { },
 		controller:  ['$scope', function($scope) {
-			
 		}]
 	};
 };

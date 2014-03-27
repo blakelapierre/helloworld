@@ -29,6 +29,6 @@
     "webrtc.io": "global:rtc",
     "socket.io": "global:io",
     "underscore": "global:_",
-    "mathjs": "global:math"
+    "mathjs": "global:mathjs"
   }
 }

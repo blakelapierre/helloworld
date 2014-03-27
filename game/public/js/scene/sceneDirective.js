@@ -1,7 +1,9 @@
 var angular = require('angular'),
 	THREE = require('three'),
 	Stats = require('stats'),
-	_ = require('underscore');
+	_ = require('underscore'),
+	mathjs = require('mathjs'),
+	math = mathjs();
 
 module.exports = function SceneDirective() {
 	return {
@@ -99,11 +101,28 @@ module.exports = function SceneDirective() {
 					delete liveSources[removableKey];
 				});
 
-				var i = 0;
+
+
+				// http://danpearcymaths.wordpress.com/2012/09/30/infinity-programming-in-geogebra-and-failing-miserably/
+				// p = floor(sqrt(4 * a + 1))
+				// q = a - floor(p^(2) / 4)
+				// q * ί^(p) + (floor((p + 2) / 4) - floor((p + 1) / 4) * ί) * ί^(p - 1)
+				var p = function(a) { math.floor(math.sqrt(math.add(math.multiply(4, a), 1))); };
+				var q = function(p, a) { math.subtract(a, math.floor(math.divide(math.square(p), 4))); };
+				var i = 0,
+					parser = math.parser();
+
 				_.each(liveSources, function(videoSource) {
-					var mesh = videoSource.mesh;
-					mesh.position.y = i;
-					mesh.position.x = i;
+					var mesh = videoSource.mesh; 
+
+					parser.eval('a = ' + i);
+					parser.eval('p = floor(sqrt(4 * a + 1))');
+					parser.eval('q = a - floor(p^2 / 4)');
+					
+					var point = parser.eval('q * i^p + (floor((p + 2) / 4) - floor((p + 1) / 4) * i) * i^(p - 1)');
+
+					mesh.position.y = point.re;
+					mesh.position.x = point.im;
 					i++;
 				});
 			}, true);

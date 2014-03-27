@@ -35,7 +35,7 @@ module.exports = function CameraDirective($sce) {
 			});
 
 			var room = window.location.hash || '#facerace';
-			rtc.connect('ws://' + window.location.hostname + ':3007', room);
+			rtc.connect('ws://' + window.location.hostname + ':3007', room.split('-')[0]);
 			$scope.room = room;
 
 			rtc.on('add remote stream', function(stream, socketID) {

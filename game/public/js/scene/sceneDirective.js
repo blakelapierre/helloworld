@@ -67,8 +67,8 @@ module.exports = function SceneDirective() {
 					console.log(newKey);
 					var videoSource = newValue[newKey],
 						video = videoSource.element,
-						width = 5,
-						height = 5,
+						width = 2,
+						height = 2,
 						texture = new THREE.Texture(video), 
 						material = new THREE.ShaderMaterial({
 							fragmentShader: document.getElementById('plane-fragment-shader-swirl').textContent,
@@ -100,7 +100,7 @@ module.exports = function SceneDirective() {
 				var i = 0;
 				_.each(liveSources, function(videoSource) {
 					var mesh = videoSource.mesh;
-					mesh.position.x = -(liveSources.length / 2) + i;
+					mesh.position.x = -10 + 5;;
 					i++;
 				});
 			}, true);

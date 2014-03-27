@@ -14,12 +14,14 @@
     "grunt-bg-shell": "latest",
     "browserify": "3.33.0",
     "browserify-shim": "3.3.2",
-    "partialify": "latest"
+    "partialify": "latest",
+    "uglifyify": "latest"
   },
   "browserify": {
   	"transform": [
   		"browserify-shim",
-  		"partialify"
+  		"partialify",
+      "uglifyify"
   	]
   },
   "browserify-shim": {

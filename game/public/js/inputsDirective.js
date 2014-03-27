@@ -1,7 +1,7 @@
 var angular = require('angular'),
 	_ = require('underscore');
 
-module.exports = function CameraDirective($sce) {
+module.exports = ['$sce', function CameraDirective($sce) {
 	return {
 		restrict: 'E',
 		link: function($scope, element, attributes) {
@@ -50,4 +50,4 @@ module.exports = function CameraDirective($sce) {
 			});
 		}
 	};	
-};
+}];

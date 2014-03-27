@@ -26,7 +26,7 @@ module.exports = function SceneDirective() {
 
 
 			camera.up.set(0, 1, 0);
-			camera.position.z = 10;
+			camera.position.z = 2;
 
 			scene.add(new THREE.AmbientLight(0xffffff));
 

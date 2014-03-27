@@ -13,6 +13,7 @@ module.exports = function SceneDirective() {
 				scene = new THREE.Scene(),
 				renderer = new THREE.WebGLRenderer({antialias: true}),
 				camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000),
+				// camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 ), // play around with this some more
 				stats = new Stats();
 
 			element.append(renderer.domElement);
@@ -67,8 +68,8 @@ module.exports = function SceneDirective() {
 					console.log(newKey);
 					var videoSource = newValue[newKey],
 						video = videoSource.element,
-						width = 2,
-						height = 2,
+						width = 1,
+						height = 1,
 						texture = new THREE.Texture(video), 
 						material = new THREE.ShaderMaterial({
 							fragmentShader: document.getElementById('plane-fragment-shader-swirl').textContent,
@@ -100,8 +101,8 @@ module.exports = function SceneDirective() {
 				var i = 0;
 				_.each(liveSources, function(videoSource) {
 					var mesh = videoSource.mesh;
-					mesh.position.y = i*2;
-					mesh.position.x = i*2;
+					mesh.position.y = i;
+					mesh.position.x = i;
 					i++;
 				});
 			}, true);

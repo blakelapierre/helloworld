@@ -30,7 +30,8 @@ module.exports = function CameraDirective($sce) {
 				$scope.$apply();
 			});
 
-			rtc.connect('ws://' + window.location.hostname + ':3007', 'facerace');
+			var room = window.location.hash || '#facerace';
+			rtc.connect('ws://' + window.location.hostname + ':3007', room);
 
 			rtc.on('add remote stream', function(stream, socketID) {
 				var video = createVideo(stream, socketID);

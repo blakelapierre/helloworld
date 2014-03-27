@@ -87,8 +87,6 @@ module.exports = function SceneDirective() {
 						mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 						
 					// texture.anisotropy = renderer.getMaxAnisotropy();
-					// texture.minFilter = THREE.LinearFilter;
-					// texture.magFilter = THREE.LinearFilter;
 					// texture.format = THREE.RGBFormat;
 					// texture.generateMipmaps = false;
 
@@ -133,7 +131,7 @@ module.exports = function SceneDirective() {
 				});
 			}, true);
 
-			var maxfps = 10,
+			var maxfps = 1,
 				lastFrame = new Date().getTime();
 			var render = function() {
 				window.requestAnimationFrame(render);

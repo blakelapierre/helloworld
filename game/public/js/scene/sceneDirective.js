@@ -87,10 +87,12 @@ module.exports = function SceneDirective() {
 						mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 						
 					// texture.anisotropy = renderer.getMaxAnisotropy();
-					texture.minFilter = THREE.LinearFilter;
-					texture.magFilter = THREE.LinearFilter;
-					texture.format = THREE.RGBFormat;
-					texture.generateMipmaps = false;
+					// texture.minFilter = THREE.LinearFilter;
+					// texture.magFilter = THREE.LinearFilter;
+					// texture.format = THREE.RGBFormat;
+					// texture.generateMipmaps = false;
+
+					texture.lastUpdate = 0;
 
 					scene.add(mesh);
 
@@ -131,8 +133,13 @@ module.exports = function SceneDirective() {
 				});
 			}, true);
 
+			var maxfps = 10,
+				lastFrame = new Date().getTime();
 			var render = function() {
 				window.requestAnimationFrame(render);
+
+				var now = new Date().getTime(),
+					dt = now - lastFrame;
 
 				var source = $scope.liveSources['local'];
 				if (source && source.mesh) camera.lookAt(source.mesh.position);
@@ -140,13 +147,17 @@ module.exports = function SceneDirective() {
 				_.each(_.pairs($scope.liveSources), function(pair) {
 					var source = pair[1],
 						element = source.element;
-					if (element.readyState == element.HAVE_ENOUGH_DATA) {
+					if (element.readyState == element.HAVE_ENOUGH_DATA &&
+						now - source.texture.lastUpdate > (1000 / maxfps) ) {
 						source.texture.needsUpdate = true;
+						source.texture.lastUpdate = now;
 					}
 				});
 
 				renderer.render(scene, camera);
 				stats.update();
+
+				lastFrame = now;
 			};
 			window.requestAnimationFrame(render);
 		}

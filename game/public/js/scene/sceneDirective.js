@@ -16,7 +16,8 @@ module.exports = function SceneDirective() {
 				renderer = new THREE.WebGLRenderer({antialias: false}),
 				camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000),
 				// camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 ), // play around with this some more
-				stats = new Stats();
+				stats = new Stats(),
+				swirl = window.location.hash.indexOf('-swirl') > -1 ? '-swirl' : '';
 
 			element.prepend(stats.domElement);
 			element.prepend(renderer.domElement);
@@ -75,12 +76,16 @@ module.exports = function SceneDirective() {
 						height = 1,
 						texture = new THREE.Texture(video), 
 						material = new THREE.ShaderMaterial({
-							fragmentShader: document.getElementById('plane-fragment-shader-swirl').textContent,
-							vertexShader: document.getElementById('plane-vertex-shader-swirl').textContent,
+							fragmentShader: document.getElementById('plane-fragment-shader' + swirl).textContent,
+							vertexShader: document.getElementById('plane-vertex-shader' + swirl).textContent,
 							uniforms: {
 								texture: {type: 't', value: texture},
 								width: {type: 'f', value: width},
-								height: {type: 'f', value: height}
+								height: {type: 'f', value: height},
+								radius: {type: 'f', value: 2},
+								angle: {type: 'f', value: 0.8},
+								center: {type: 'v2', value: new THREE.Vector2(width / 2, height / 2)},
+								time: {type: 'f', value: 1.0}
 							},
 							side: THREE.DoubleSide
 						}),
@@ -96,6 +101,7 @@ module.exports = function SceneDirective() {
 
 					videoSource.mesh = mesh;
 					videoSource.texture = texture;
+					videoSource.material = material;
 					liveSources[newKey] = videoSource;
 				});
 
@@ -150,6 +156,7 @@ module.exports = function SceneDirective() {
 						source.texture.needsUpdate = true;
 						source.texture.lastUpdate = now;
 					}
+					source.material.uniforms.time.value += 1;
 				});
 
 				renderer.render(scene, camera);

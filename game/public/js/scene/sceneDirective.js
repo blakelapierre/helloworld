@@ -13,7 +13,7 @@ module.exports = function SceneDirective() {
 			var width = window.innerWidth,
 				height = window.innerHeight,
 				scene = new THREE.Scene(),
-				renderer = new THREE.WebGLRenderer({antialias: true}),
+				renderer = new THREE.WebGLRenderer({antialias: false}),
 				camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000),
 				// camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 ), // play around with this some more
 				stats = new Stats();
@@ -86,7 +86,11 @@ module.exports = function SceneDirective() {
 						}),
 						mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height, 1, 1), material);
 						
-					texture.anisotropy = renderer.getMaxAnisotropy();
+					// texture.anisotropy = renderer.getMaxAnisotropy();
+					texture.minFilter = THREE.LinearFilter;
+					texture.magFilter = THREE.LinearFilter;
+					texture.format = THREE.RGBFormat;
+					texture.generateMipmaps = false;
 
 					scene.add(mesh);
 

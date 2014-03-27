@@ -100,7 +100,8 @@ module.exports = function SceneDirective() {
 				var i = 0;
 				_.each(liveSources, function(videoSource) {
 					var mesh = videoSource.mesh;
-					mesh.position.x = -10 + 5;;
+					mesh.position.y = i;
+					mesh.position.x = i;
 					i++;
 				});
 			}, true);

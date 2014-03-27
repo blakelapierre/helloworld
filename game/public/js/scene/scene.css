@@ -4,3 +4,10 @@ scene {
 	position: absolute;
 	overflow: hidden;
 }
+
+.room-name {
+	position: absolute;
+	bottom: 0%;
+	left: 0%;
+	color: #fff;
+}

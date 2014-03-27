@@ -16,8 +16,8 @@ module.exports = function SceneDirective() {
 				// camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, 1, 1000 ), // play around with this some more
 				stats = new Stats();
 
-			element.append(renderer.domElement);
-			element.append(stats.domElement);
+			element.prepend(stats.domElement);
+			element.prepend(renderer.domElement);
 
 			$scope.scene = scene;
 			$scope.renderer = renderer;

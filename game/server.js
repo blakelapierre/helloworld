@@ -11,6 +11,10 @@ var startServer = function(config, callback) {
 		rtc = webRTC.listen(config.rtcport),
 		io = socketIO.listen(webserver);
 
+	app.get('/channels', function(req, res) {
+		res.json(rtc.rtc.rooms);
+	});
+
 	return callback(webserver, io, rtc);
 };
 

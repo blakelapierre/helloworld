@@ -6,6 +6,6 @@ helloworld - video-conferencing for everyone - a WebRTC.io server with a WebGL+a
     npm install
     grunt
 
-The # portion of the url controls which channel/room you get placed in: http://localhost:3006/#&35;channel1
+The # portion of the url controls which channel/room you get placed in: http://localhost:3006/#channel1
 
-Add "-swipe" to the end of the url to enable a shader that causes a swirling effect: http://localhost:3006/#&35;channel1-swipe
+Add "-swipe" to the end of the url to enable a shader that causes a swirling effect: http://localhost:3006/#channel1-swipe

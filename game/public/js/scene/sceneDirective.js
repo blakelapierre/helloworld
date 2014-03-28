@@ -137,7 +137,7 @@ module.exports = function SceneDirective() {
 				});
 			}, true);
 
-			var maxfps = 1,
+			var maxfps = 2,
 				lastFrame = new Date().getTime();
 			var render = function() {
 				window.requestAnimationFrame(render);

@@ -28,7 +28,7 @@ module.exports = ['$sce', function CameraDirective($sce) {
 				console.log(stream);
 				_.each(stream.getAudioTracks(), function(track) { 
 					console.log('track', track);
-					track.enabled = false; 
+					//track.enabled = false; 
 				});
 				$scope.sources[video.socketID] = video;
 				$scope.$apply();

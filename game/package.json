@@ -1,7 +1,7 @@
 {
-  "name": "facerace",
+  "name": "helloworld",
   "version": "0.0.1",
-  "description": "3D multiplayer racing in your browser",
+  "description": "video-conferencing for everybody!",
   "author": "Blake La Pierre",
   "dependencies": {
     "express": "latest",

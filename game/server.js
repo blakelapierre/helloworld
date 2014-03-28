@@ -8,10 +8,8 @@ var startServer = function(config, callback) {
 	app.use(express.static(path.join(__dirname, '/public')));	
 
 	var webserver = app.listen(config.port),
-		//io = socketIO.listen(webserver),
-		rtc = webRTC.listen(config.rtcport);
-var io;
-	//io.set('log level', 0);
+		rtc = webRTC.listen(config.rtcport),
+		io = socketIO.listen(webserver);
 
 	return callback(webserver, io, rtc);
 };

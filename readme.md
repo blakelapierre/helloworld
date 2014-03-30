@@ -1,4 +1,4 @@
-helloworld - video-conferencing for everyone - a WebRTC.io server with a WebGL+angular.js frontend
+helloworld - video-conferencing for everyone - a WebRTC.io server with a three.js+angular.js frontend
 
 **Live server at http://107.170.237.209:3006/#pulsar**
 

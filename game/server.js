@@ -1,7 +1,36 @@
 var startServer = function(config, callback) {
+	getPublicAddress(function(address) {
+		config.publicAddress = address;
+		startServices(config, callback);
+	});
+};
+
+var getPublicAddress = function(deliver) {
+	var http = require('http');
+
+	console.log('determining public ip address...');
+	http.get('http://fugal.net/ip.cgi', function(res) {
+	    if(res.statusCode != 200) {
+	        throw new Error('non-OK status: ' + res.statusCode);
+	    }
+	    res.setEncoding('utf-8');
+	    var ipAddress = '';
+	    res.on('data', function(chunk) { ipAddress += chunk; });
+	    res.on('end', function() {
+	    	ipAddress = ipAddress.trim();
+	    	console.log('Public Address: ' + ipAddress);
+	        deliver(ipAddress);
+	    });
+	}).on('error', function(err) {
+	    throw err;
+	});
+};
+
+var startServices = function(config, callback) {
 	var express = require('express'),
 		socketIO = require('socket.io'),
 		webRTC = require('webrtc.io'),
+		nodemailer = require('nodemailer'),
 		path = require('path'),
 		app = express();
 
@@ -10,6 +39,37 @@ var startServer = function(config, callback) {
 	var webserver = app.listen(config.port),
 		rtc = webRTC.listen(config.rtcport),
 		io = socketIO.listen(webserver);
+
+	var mailer = nodemailer.createTransport('SMTP', {
+		service: 'Gmail',
+		auth: {
+			user: 'hello.world.video.chat@gmail.com',
+			pass: 'palebluedot'
+		}
+	});
+
+	var roomSubscriptions = {
+		'#facerace': ['blakelapierre@gmail.com']
+	};
+
+	var notifyRoomSubscriptions = function(room) {
+		var subscriptions = roomSubscriptions[room] || [];
+
+		for (var i = 0; i < subscriptions.length; i++) {
+			mailer.sendMail({
+				from: 'hello.world.video.chat@gmail.com',
+				to: subscriptions[i],
+				subject: 'Someone just joined ' + room,
+				text: 'Join them: http://' + config.publicAddress + ':' + config.port 
+			}, function(error, responseStatus) {
+				console.log(arguments);
+			})
+		}
+	};
+
+	rtc.rtc.on('join_room', function(data, socket) {
+		notifyRoomSubscriptions(data.room);
+	});
 
 	app.get('/channels', function(req, res) {
 		res.json(rtc.rtc.rooms);

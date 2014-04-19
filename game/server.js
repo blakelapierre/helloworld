@@ -28,13 +28,15 @@ var getPublicAddress = function(deliver) {
 
 var startServices = function(config, callback) {
 	var express = require('express'),
+		bodyParser = require('body-parser'),
 		socketIO = require('socket.io'),
 		webRTC = require('webrtc.io'),
 		nodemailer = require('nodemailer'),
 		path = require('path'),
 		app = express();
 
-	app.use(express.static(path.join(__dirname, '/public')));	
+	app.use(bodyParser());
+	//app.use(express.static(path.join(__dirname, '/public')));
 
 	var webserver = app.listen(config.port),
 		rtc = webRTC.listen(config.rtcport),
@@ -63,17 +65,50 @@ var startServices = function(config, callback) {
 				text: 'Join them: http://' + config.publicAddress + ':' + config.port 
 			}, function(error, responseStatus) {
 				console.log(arguments);
-			})
+			});
 		}
 	};
+
+	var invite = function(address, room) {
+		mailer.sendMail({
+			from: 'hello.world.video.chat@gmail.com',
+			to: address,
+			subject: 'Someone just invited you to video chat',
+			text: 'Join them: http://' + config.publicAddress + ':' + config.port + room
+		}, function(error, responseStatus) {
+			console.log(arguments);
+		});
+	}
 
 	rtc.rtc.on('join_room', function(data, socket) {
 		notifyRoomSubscriptions(data.room);
 	});
 
-	app.get('/channels', function(req, res) {
+	var router = express.Router();
+
+	router.get('/channels', function(req, res) {
 		res.json(rtc.rtc.rooms);
 	});
+
+	router.post('/invite/:address', function(req, res) {
+		var address = req.params.address,
+			room = req.body;
+
+		var data = ''
+		req.on('data', function(chunk) {
+			data += chunk.toString();
+		});
+		req.on('end', function() {
+			var message = JSON.parse(data),
+				room = message.room;
+
+			invite(address, room);
+
+			res.json({sent:true});
+		});
+	});
+
+	app.use('/', router);
 
 	return callback(webserver, io, rtc);
 };

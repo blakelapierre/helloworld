@@ -36,7 +36,7 @@ var startServices = function(config, callback) {
 		app = express();
 
 	app.use(bodyParser());
-	//app.use(express.static(path.join(__dirname, '/public')));
+	app.use(express.static(path.join(__dirname, '/public')));
 
 	var webserver = app.listen(config.port),
 		rtc = webRTC.listen(config.rtcport),

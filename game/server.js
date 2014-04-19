@@ -62,7 +62,7 @@ var startServices = function(config, callback) {
 				from: 'hello.world.video.chat@gmail.com',
 				to: subscriptions[i],
 				subject: 'Someone just joined ' + room,
-				text: 'Join them: http://' + config.publicAddress + ':' + config.port 
+				text: 'Join them: http://' + config.publicAddress + ':' + config.port + room
 			}, function(error, responseStatus) {
 				console.log(arguments);
 			});
@@ -78,7 +78,7 @@ var startServices = function(config, callback) {
 		}, function(error, responseStatus) {
 			console.log(arguments);
 		});
-	}
+	};
 
 	rtc.rtc.on('join_room', function(data, socket) {
 		notifyRoomSubscriptions(data.room);
